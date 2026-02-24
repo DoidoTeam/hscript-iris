@@ -4,7 +4,7 @@
 	- You can now call the `using` statement with most classes
 	- You can make your project's classes usable by implementing an interface
 		```haxe
-		class CoolUtil implements crowplexus.iris.IrisUsingClass {}
+		class CoolUtil implements hscript.iris.IrisUsingClass {}
 		```
 	- Customizable using parsing by using @:irisUsableEntry(forceAny, onlyBasic), arguments are optional
 	- You can also prevent a function from being used by adding `@:irisNoUse` over the function.

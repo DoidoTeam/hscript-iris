@@ -1,15 +1,15 @@
-package crowplexus.iris;
+package hscript.iris;
 
 import haxe.CallStack;
-import crowplexus.iris.utils.Ansi;
-import crowplexus.hscript.proxy.ProxyType;
+import hscript.iris.utils.Ansi;
+import hscript.proxy.ProxyType;
 import haxe.ds.StringMap;
-import crowplexus.hscript.*;
-import crowplexus.iris.ErrorSeverity;
-import crowplexus.iris.IrisConfig;
-import crowplexus.iris.utils.UsingEntry;
+import hscript.*;
+import hscript.iris.ErrorSeverity;
+import hscript.iris.IrisConfig;
+import hscript.iris.utils.UsingEntry;
 
-using crowplexus.iris.utils.Ansi;
+using hscript.iris.utils.Ansi;
 
 @:structInit
 class IrisCall {

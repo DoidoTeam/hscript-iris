@@ -20,9 +20,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package crowplexus.hscript;
+package hscript;
 
-import crowplexus.hscript.Expr;
+import hscript.Expr;
 
 class Tools {
 	public static function iter(e: Expr, f: Expr->Void): Void {

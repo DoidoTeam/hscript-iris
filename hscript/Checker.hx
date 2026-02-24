@@ -1,6 +1,6 @@
-package crowplexus.hscript;
+package hscript;
 
-import crowplexus.hscript.Expr;
+import hscript.Expr;
 
 /**
 	This is a special type that can be used in API.

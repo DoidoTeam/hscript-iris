@@ -20,10 +20,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package crowplexus.hscript;
+package hscript;
 
-import crowplexus.hscript.Expr;
-import crowplexus.hscript.Tools;
+import hscript.Expr;
+import hscript.Tools;
 
 using StringTools;
 

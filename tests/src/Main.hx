@@ -3,15 +3,15 @@ package;
 import sys.io.File;
 import haxe.io.Path;
 import sys.FileSystem;
-import crowplexus.iris.Iris;
-import crowplexus.hscript.Parser;
-import crowplexus.hscript.Printer;
-import crowplexus.hscript.Bytes;
+import hscript.iris.Iris;
+import hscript.Parser;
+import hscript.Printer;
+import hscript.Bytes;
 import haxe.Resource;
 
 using StringTools;
 
-@:access(crowplexus.iris.Iris)
+@:access(hscript.iris.Iris)
 class Main {
 	static function main() {
 		// mainTest();

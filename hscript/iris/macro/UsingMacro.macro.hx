@@ -1,4 +1,4 @@
-package crowplexus.iris.macro;
+package hscript.iris.macro;
 
 import Type.ValueType;
 import eval.vm.Gc;
@@ -19,7 +19,7 @@ using haxe.macro.Tools;
  * // @:irisUsableEntry(forceAny) // optional // forces the class to be called with any type
  * // @:irisUsableEntry(onlyBasic) // optional // only basic types will be allowed
  * // @:irisUsableEntry(onlyBasic, forceAny) // optional // only basic types will be allowed, and the class will be called with any type
- * class VeryNiceTools implements crowplexus.iris.macro.IrisUsingClass {}
+ * class VeryNiceTools implements hscript.iris.macro.IrisUsingClass {}
  * ```
  * @author NeeEoo
 **/

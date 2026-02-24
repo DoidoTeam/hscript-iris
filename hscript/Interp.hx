@@ -20,15 +20,15 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package crowplexus.hscript;
+package hscript;
 
 import haxe.Constraints.Function;
 import Type.ValueType;
-import crowplexus.hscript.Expr;
-import crowplexus.hscript.Tools;
-import crowplexus.iris.Iris;
-import crowplexus.iris.IrisUsingClass;
-import crowplexus.iris.utils.UsingEntry;
+import hscript.Expr;
+import hscript.Tools;
+import hscript.iris.Iris;
+import hscript.iris.IrisUsingClass;
+import hscript.iris.utils.UsingEntry;
 import haxe.Constraints.IMap;
 import haxe.PosInfos;
 

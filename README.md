@@ -1,8 +1,9 @@
-# HScript Iris
+# HScript Iris - Doido
 
 ---
 
 a [HScript](https://github.com/HaxeFoundation/hscript) extension made to make the process of creating a script way easier.
+NOTE: Might not be compatible with projects expecting regular hscript-iris
 
 ---
 
@@ -51,8 +52,8 @@ function countUpTo(number:Int) {
 // * src/Main.hx
 // *
 
-import crowplexus.iris.Iris;
-import crowplexus.iris.IrisConfig;
+import hscript.iris.Iris;
+import hscript.iris.IrisConfig;
 
 class Main {
 	static function main():Void {

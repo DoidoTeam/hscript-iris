@@ -1,10 +1,10 @@
-package crowplexus.hscript;
+package hscript;
 
 /**
  * Fixes For Loop integer iterators.
 **/
 @:keepSub
-@:access(crowplexus.hscript.Interp)
+@:access(hscript.Interp)
 class InterpIterator {
 	public var min: Int;
 	public var max: Int;

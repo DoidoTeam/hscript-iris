@@ -1,4 +1,4 @@
-package crowplexus.iris.utils;
+package hscript.iris.utils;
 
 // someday
 @:structInit
