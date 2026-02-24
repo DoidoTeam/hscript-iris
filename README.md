@@ -6,17 +6,8 @@ a [HScript](https://github.com/HaxeFoundation/hscript) extension made to make th
 NOTE: Might not be compatible with projects expecting regular hscript-iris
 
 ---
-
-Brought to you by:
-
-- [Crow](https://github.com/crowplexus)
-- [Ne_Eo](https://github.com/NeeEoo)
-
-
-- [Setup](docs/SETUP.md)
-- [Features](docs/FEATURES.md)
-- [Usage](#usage)
-
+# Credits
+- Parent Instances taken from Psych Engine
 ---
 
 # USAGE
