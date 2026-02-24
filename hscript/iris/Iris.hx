@@ -224,7 +224,7 @@ class Iris {
 	 * will trace "Hello World!" to the standard output.
 	 * @param scriptCode      the script to be parsed, e.g:
 	 */
-	public function new(scriptCode: String, ?config: AutoIrisConfig): Void {
+	public function new(scriptCode: String, ?parent: Dynamic, ?config: AutoIrisConfig): Void {
 		if (config == null)
 			config = new IrisConfig("Iris", true, true, []);
 		this.scriptCode = scriptCode;
@@ -234,6 +234,7 @@ class Iris {
 		parser = new Parser();
 		interp = new Interp();
 		interp.showPosOnLog = false;
+		interp.parentInstance = parent;
 
 		parser.allowTypes = true;
 		parser.allowMetadata = true;

@@ -76,6 +76,21 @@ class Interp {
 
 	public var showPosOnLog: Bool = true;
 
+	public var parentInstance(default, set):Dynamic = [];
+	private var _instanceFields:Array<String>;
+
+	function set_parentInstance(inst:Dynamic):Dynamic
+	{
+		parentInstance = inst;
+		if(parentInstance == null)
+		{
+			_instanceFields = [];
+			return inst;
+		}
+		_instanceFields = Type.getInstanceFields(Type.getClass(inst));
+		return inst;
+	}
+
 	public function new() {
 		#if haxe3
 		locals = new Map();
@@ -395,6 +410,11 @@ class Interp {
 
 		if (imports.exists(id)) {
 			var v = imports.get(id);
+			return v;
+		}
+
+		if(parentInstance != null && _instanceFields.contains(id)) {
+			var v = Reflect.getProperty(parentInstance, id);
 			return v;
 		}
 
@@ -1049,13 +1069,21 @@ class Interp {
 	 */
 	var usings: Array<UsingEntry> = [];
 
-	function fcall(o: Dynamic, f: String, args: Array<Dynamic>): Dynamic {
+	function fcall(o:Dynamic, funcToRun:String, args:Array<Dynamic>):Dynamic {
 		for (_using in usings) {
-			var v = _using.call(o, f, args);
+			var v = _using.call(o, funcToRun, args);
 			if (v != null)
 				return v;
 		}
-		return call(o, get(o, f), args);
+
+		var f = get(o, funcToRun);
+
+		if (f == null) {
+			Iris.error('Tried to call null function $funcToRun', posInfos());
+			return null;
+		}
+
+		return Reflect.callMethod(o, f, args);
 	}
 
 	function call(o: Dynamic, f: Dynamic, args: Array<Dynamic>): Dynamic {
