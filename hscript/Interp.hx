@@ -86,7 +86,6 @@ class Interp {
 			return inst;
 		}
 		_instanceFields = Type.getInstanceFields(Type.getClass(inst));
-		trace(_instanceFields);
 		return parentInstance = inst;
 	}
 
