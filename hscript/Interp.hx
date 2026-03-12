@@ -76,19 +76,18 @@ class Interp {
 
 	public var showPosOnLog: Bool = true;
 
-	public var parentInstance(default, set):Dynamic = [];
-	private var _instanceFields:Array<String>;
+	public var parentInstance(default, set): Dynamic = [];
 
-	function set_parentInstance(inst:Dynamic):Dynamic
-	{
-		parentInstance = inst;
-		if(parentInstance == null)
-		{
+	private var _instanceFields: Array<String>;
+
+	function set_parentInstance(inst: Dynamic): Dynamic {
+		if (parentInstance == null) {
 			_instanceFields = [];
 			return inst;
 		}
 		_instanceFields = Type.getInstanceFields(Type.getClass(inst));
-		return inst;
+		trace(_instanceFields);
+		return parentInstance = inst;
 	}
 
 	public function new() {
@@ -177,8 +176,14 @@ class Interp {
 		assignOp("??" + "=", function(v1, v2) return v1 == null ? v2 : v1);
 	}
 
-	public inline function setVar(name: String, v: Dynamic) {
-		variables.set(name, v);
+	public function setVar(name: String, v: Dynamic) {
+		if (parentInstance != null) {
+			if (_instanceFields.contains(name)) {
+				Reflect.setProperty(parentInstance, name, v);
+			}
+		}
+		else
+			variables.set(name, v);
 	}
 
 	function assign(e1: Expr, e2: Expr): Dynamic {
@@ -413,9 +418,13 @@ class Interp {
 			return v;
 		}
 
-		if(parentInstance != null && _instanceFields.contains(id)) {
-			var v = Reflect.getProperty(parentInstance, id);
-			return v;
+		if (parentInstance != null) {
+			if (id == "this")
+				return parentInstance;
+			else if(_instanceFields.contains(id)) {
+				var v = Reflect.getProperty(parentInstance, id);
+				return v;
+			}
 		}
 
 		error(EUnknownVariable(id));
@@ -1069,7 +1078,7 @@ class Interp {
 	 */
 	var usings: Array<UsingEntry> = [];
 
-	function fcall(o:Dynamic, funcToRun:String, args:Array<Dynamic>):Dynamic {
+	function fcall(o: Dynamic, funcToRun: String, args: Array<Dynamic>): Dynamic {
 		for (_using in usings) {
 			var v = _using.call(o, funcToRun, args);
 			if (v != null)
