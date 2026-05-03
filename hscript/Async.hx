@@ -24,22 +24,24 @@ package hscript;
 
 import hscript.Expr;
 
-enum VarMode {
+enum VarMode
+{
 	Defined;
 	ForceSync;
 }
 
-class Async {
-	var definedVars: Array<{n: String, prev: Null<VarMode>}>;
-	var vars: Map<String, VarMode>;
-	var currentFun: String;
-	var currentLoop: Expr;
-	var currentBreak: Expr->Expr;
+class Async
+{
+	var definedVars:Array<{n:String, prev:Null<VarMode>}>;
+	var vars:Map<String, VarMode>;
+	var currentFun:String;
+	var currentLoop:Expr;
+	var currentBreak:Expr->Expr;
 	var uid = 0;
 
-	public var asyncIdents: Map<String, Bool>;
+	public var asyncIdents:Map<String, Bool>;
 
-	static var nullExpr: Expr =
+	static var nullExpr:Expr =
 		#if hscriptPos
 		{
 			e: null,
@@ -53,11 +55,13 @@ class Async {
 		#end;
 	static var nullId = mk(EIdent("null"), nullExpr);
 
-	inline static function expr(e: Expr) {
+	inline static function expr(e:Expr)
+	{
 		return #if hscriptPos e.e #else e #end;
 	}
 
-	inline static function mk(e, inf: Expr): Expr {
+	inline static function mk(e, inf:Expr):Expr
+	{
 		return #if hscriptPos
 			{
 				e: e,
@@ -93,32 +97,41 @@ class Async {
 
 		In these examples ...rest represents the continuation of execution of the script after the expression
 	**/
-	public static function toAsync(e: Expr, topLevelSync = false) {
+	public static function toAsync(e:Expr, topLevelSync = false)
+	{
 		var a = new Async();
 		return a.build(e, topLevelSync);
 	}
 
-	public dynamic function getTopLevelEnd() {
+	public dynamic function getTopLevelEnd()
+	{
 		return ignore();
 	}
 
-	public function build(e: Expr, topLevelSync = false) {
-		if (topLevelSync) {
+	public function build(e:Expr, topLevelSync = false)
+	{
+		if (topLevelSync)
+		{
 			return buildSync(e, null);
-		} else {
+		}
+		else
+		{
 			var end = getTopLevelEnd();
 			return toCps(e, end, end);
 		}
 	}
 
-	function defineVar(v: String, mode) {
+	function defineVar(v:String, mode)
+	{
 		definedVars.push({n: v, prev: vars.get(v)});
 		vars.set(v, mode);
 	}
 
-	function lookupFunctions(el: Array<Expr>) {
+	function lookupFunctions(el:Array<Expr>)
+	{
 		for (e in el)
-			switch (expr(e)) {
+			switch (expr(e))
+			{
 				case EFunction(_, _, name, _) if (name != null):
 					defineVar(name, Defined);
 				case EMeta("sync", _, expr(_) => EFunction(_, _, name, _)) if (name != null):
@@ -127,8 +140,10 @@ class Async {
 			}
 	}
 
-	function buildSync(e: Expr, exit: Expr): Expr {
-		switch (expr(e)) {
+	function buildSync(e:Expr, exit:Expr):Expr
+	{
+		switch (expr(e))
+		{
 			case EFunction(_, _, name, _):
 				if (name != null)
 					return toCps(e, null, null);
@@ -162,48 +177,59 @@ class Async {
 		}
 	}
 
-	public function new() {
+	public function new()
+	{
 		vars = new Map();
 		definedVars = [];
 	}
 
-	function ignore(?e): Expr {
+	function ignore(?e):Expr
+	{
 		var inf = e == null ? nullExpr : e;
 		return fun("_", block(e == null ? [] : [e], inf));
 	}
 
-	inline function ident(str, e) {
+	inline function ident(str, e)
+	{
 		return mk(EIdent(str), e);
 	}
 
-	inline function fun(arg: String, e, ?name) {
+	inline function fun(arg:String, e, ?name)
+	{
 		return mk(EFunction([{name: arg, t: null}], e, name), e);
 	}
 
-	inline function funs(arg: Array<String>, e, ?name) {
+	inline function funs(arg:Array<String>, e, ?name)
+	{
 		return mk(EFunction([for (a in arg) {name: a, t: null}], e, name), e);
 	}
 
-	inline function block(arr: Array<Expr>, e) {
+	inline function block(arr:Array<Expr>, e)
+	{
 		if (arr.length == 1 && expr(arr[0]).match(EBlock(_)))
 			return arr[0];
 		return mk(EBlock(arr), e);
 	}
 
-	inline function field(e, f, inf) {
+	inline function field(e, f, inf)
+	{
 		return mk(EField(e, f), inf);
 	}
 
-	inline function binop(op, e1, e2, inf) {
+	inline function binop(op, e1, e2, inf)
+	{
 		return mk(EBinop(op, e1, e2), inf);
 	}
 
-	inline function call(e, args, inf) {
+	inline function call(e, args, inf)
+	{
 		return mk(ECall(e, args), inf);
 	}
 
-	function retNull(e: Expr, ?pos): Expr {
-		switch (expr(e)) {
+	function retNull(e:Expr, ?pos):Expr
+	{
+		switch (expr(e))
+		{
 			case EFunction([{name: "_"}], e, _, _):
 				return e;
 			default:
@@ -211,36 +237,42 @@ class Async {
 		return call(e, [nullId], pos == null ? e : pos);
 	}
 
-	function makeCall(ecall, args: Array<Expr>, rest: Expr, exit, sync = false) {
+	function makeCall(ecall, args:Array<Expr>, rest:Expr, exit, sync = false)
+	{
 		var names = [for (i in 0...args.length) "_a" + uid++];
 		var rargs = [for (i in 0...args.length) ident(names[i], ecall)];
 		if (!sync)
 			rargs.unshift(rest);
 		var rest = mk(sync ? ECall(rest, [call(ecall, rargs, ecall)]) : ECall(ecall, rargs), ecall);
 		var i = args.length - 1;
-		while (i >= 0) {
+		while (i >= 0)
+		{
 			rest = toCps(args[i], fun(names[i], rest), exit);
 			i--;
 		}
 		return rest;
 	}
 
-	var syncFlag: Bool;
+	var syncFlag:Bool;
 
-	function isSync(e: Expr) {
+	function isSync(e:Expr)
+	{
 		syncFlag = true;
 		checkSync(e);
 		return syncFlag;
 	}
 
-	inline function isAsyncIdent(id: String) {
+	inline function isAsyncIdent(id:String)
+	{
 		return asyncIdents == null || asyncIdents.exists(id);
 	}
 
-	function checkSync(e: Expr) {
+	function checkSync(e:Expr)
+	{
 		if (!syncFlag)
 			return;
-		switch (expr(e)) {
+		switch (expr(e))
+		{
 			case ECall(expr(_) => EIdent(i), _) if (isAsyncIdent(i) || vars.get(i) == Defined):
 				syncFlag = false;
 			case ECall(expr(_) => EField(_, i), _) if (isAsyncIdent(i)):
@@ -254,12 +286,15 @@ class Async {
 		}
 	}
 
-	function saveVars() {
+	function saveVars()
+	{
 		return definedVars.length;
 	}
 
-	function restoreVars(k) {
-		while (definedVars.length > k) {
+	function restoreVars(k)
+	{
+		while (definedVars.length > k)
+		{
 			var v = definedVars.pop();
 			if (v.prev == null)
 				vars.remove(v.n)
@@ -268,15 +303,18 @@ class Async {
 		}
 	}
 
-	public function toCps(e: Expr, rest: Expr, exit: Expr): Expr {
+	public function toCps(e:Expr, rest:Expr, exit:Expr):Expr
+	{
 		if (isSync(e))
 			return call(rest, [buildSync(e, exit)], e);
-		switch (expr(e)) {
+		switch (expr(e))
+		{
 			case EBlock(el):
 				var el = el.copy();
 				var vold = saveVars();
 				lookupFunctions(el);
-				while (el.length > 0) {
+				while (el.length > 0)
+				{
 					var e = toCps(el.pop(), rest, exit);
 					rest = ignore(e);
 				}
@@ -304,7 +342,8 @@ class Async {
 				var nothing = ignore();
 				return block([toCps(e, nothing, nothing), retNull(rest)], e);
 			case EMeta("split", _, e):
-				var args = switch (expr(e)) {
+				var args = switch (expr(e))
+				{
 					case EArrayDecl(el): el;
 					default: throw "@split expression should be an array";
 				};
@@ -337,9 +376,11 @@ class Async {
 			case EUnop(op = "!", prefix, eop):
 				return toCps(eop, fun("_r", call(rest, [mk(EUnop(op, prefix, ident("_r", e)), e)], e)), exit);
 			case EBinop(op, e1, e2):
-				switch (op) {
+				switch (op)
+				{
 					case "=", "+=", "-=", "/=", "*=", "%=", "&=", "|=", "^=":
-						switch (expr(e1)) {
+						switch (expr(e1))
+						{
 							case EIdent(_):
 								var id = "_r" + uid++;
 								return toCps(e2, fun(id, call(rest, [binop(op, e1, ident(id, e1), e1)], e1)), exit);
@@ -408,7 +449,8 @@ class Async {
 				var id = "_a" + uid++;
 				var rest = call(rest, [ident(id, e)], e);
 				var i = el.length - 1;
-				while (i >= 0) {
+				while (i >= 0)
+				{
 					var e = el[i];
 					rest = toCps(e, fun("_r", block([
 						binop("=", mk(EArray(ident(id, e), mk(EConst(CInt(i)), e)), e), ident("_r", e), e),
@@ -435,7 +477,8 @@ class Async {
 				var rargs = [for (i in 0...args.length) ident(names[i], args[i])];
 				var rest = call(rest, [mk(ENew(cl, rargs), e)], e);
 				var i = args.length - 1;
-				while (i >= 0) {
+				while (i >= 0)
+				{
 					rest = toCps(args[i], fun(names[i], rest), exit);
 					i--;
 				}
@@ -464,8 +507,10 @@ class Async {
 	}
 }
 
-class AsyncInterp extends Interp {
-	public function setContext(api: Dynamic) {
+class AsyncInterp extends Interp
+{
+	public function setContext(api:Dynamic)
+	{
 		var funs = new Array();
 		for (v in variables.keys())
 			if (Reflect.isFunction(variables.get(v)))
@@ -475,7 +520,8 @@ class AsyncInterp extends Interp {
 		variables.set("makeIterator", makeIterator);
 
 		var c = Type.getClass(api);
-		for (f in (c == null ? Reflect.fields(api) : Type.getInstanceFields(c))) {
+		for (f in (c == null ? Reflect.fields(api) : Type.getInstanceFields(c)))
+		{
 			var fv = Reflect.field(api, f);
 			if (!Reflect.isFunction(fv))
 				continue;
@@ -487,24 +533,28 @@ class AsyncInterp extends Interp {
 				funs.push({v: f, obj: api});
 		}
 
-		for (v in funs) {
+		for (v in funs)
+		{
 			if (variables.exists("a_" + v.v))
 				continue;
-			var fv: Dynamic = variables.get(v.v);
+			var fv:Dynamic = variables.get(v.v);
 			var obj = v.obj;
-			variables.set("a_" + v.v, Reflect.makeVarArgs(function(args: Array<Dynamic>) {
+			variables.set("a_" + v.v, Reflect.makeVarArgs(function(args:Array<Dynamic>)
+			{
 				var onEnd = args.shift();
 				onEnd(Reflect.callMethod(obj, fv, args));
 			}));
 		}
 	}
 
-	public function hasMethod(name: String) {
+	public function hasMethod(name:String)
+	{
 		var v = variables.get(name);
 		return v != null && Reflect.isFunction(v);
 	}
 
-	public function callValue(value: Dynamic, args: Array<Dynamic>, ?onResult: Dynamic->Void, ?vthis: {}) {
+	public function callValue(value:Dynamic, args:Array<Dynamic>, ?onResult:Dynamic->Void, ?vthis:{})
+	{
 		var oldThis = variables.get("this");
 		if (vthis != null)
 			variables.set("this", vthis);
@@ -515,19 +565,23 @@ class AsyncInterp extends Interp {
 		variables.set("this", oldThis);
 	}
 
-	public function callAsync(id: String, args, ?onResult, ?vthis: {}) {
+	public function callAsync(id:String, args, ?onResult, ?vthis:{})
+	{
 		var v = variables.get(id);
 		if (v == null)
 			throw "Missing function " + id + "()";
 		callValue(v, args, onResult, vthis);
 	}
 
-	function split(rest: Dynamic->Void, args: Array<Dynamic>) {
+	function split(rest:Dynamic->Void, args:Array<Dynamic>)
+	{
 		if (args.length == 0)
 			rest(null);
-		else {
+		else
+		{
 			var count = args.length;
-			function next(_) {
+			function next(_)
+			{
 				if (--count == 0)
 					rest(null);
 			}
@@ -536,28 +590,36 @@ class AsyncInterp extends Interp {
 		}
 	}
 
-	override function fcall(o: Dynamic, f: String, args: Array<Dynamic>): Dynamic {
+	override function fcall(o:Dynamic, f:String, args:Array<Dynamic>):Dynamic
+	{
 		var m = Reflect.field(o, f);
-		if (m == null) {
-			if (f.substr(0, 2) == "a_") {
+		if (m == null)
+		{
+			if (f.substr(0, 2) == "a_")
+			{
 				m = Reflect.field(o, f.substr(2));
 				// fallback on sync version
-				if (m != null) {
+				if (m != null)
+				{
 					var onEnd = args.shift();
 					onEnd(call(o, m, args));
 					return null;
 				}
 				// fallback on generic script
 				m = Reflect.field(o, "scriptCall");
-				if (m != null) {
+				if (m != null)
+				{
 					call(o, m, [args.shift(), f.substr(2), args]);
 					return null;
 				}
-			} else {
+			}
+			else
+			{
 				// fallback on generic script
 				m = Reflect.field(o, "scriptCall");
-				if (m != null) {
-					var result: Dynamic = null;
+				if (m != null)
+				{
+					var result:Dynamic = null;
 					call(o, m, [function(r) result = r, f, args]);
 					return result;
 				}

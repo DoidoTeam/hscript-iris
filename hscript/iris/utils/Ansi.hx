@@ -2,7 +2,8 @@ package hscript.iris.utils;
 
 #if (haxe_ver < 4.3) @:enum #else enum #end
 
-abstract AnsiColor(Int) {
+abstract AnsiColor(Int)
+{
 	final BLACK = 0;
 	final RED = 1;
 	final GREEN = 2;
@@ -19,7 +20,8 @@ abstract AnsiColor(Int) {
 
 #if (haxe_ver < 4.3) @:enum #else enum #end
 
-abstract AnsiTextAttribute(Int) {
+abstract AnsiTextAttribute(Int)
+{
 	/**
 	 * All colors/text-attributes off
 	 */
@@ -78,19 +80,20 @@ abstract AnsiTextAttribute(Int) {
 	final STRIKTHROUGH_OFF = 29;
 }
 
-class Ansi implements hscript.iris.IrisUsingClass {
+class Ansi implements hscript.iris.IrisUsingClass
+{
 	/**
 	 * ANSI escape sequence header
 	 */
 	public static inline final ESC = "\x1B[";
 
-	inline public static function reset(str: String): String
+	inline public static function reset(str:String):String
 		return str + ESC + "0m";
 
 	/**
 	 * sets the given text attribute
 	 */
-	inline public static function attr(str: String, attr: AnsiTextAttribute): String
+	inline public static function attr(str:String, attr:AnsiTextAttribute):String
 		return ESC + (attr) + "m" + str;
 
 	/**
@@ -100,19 +103,19 @@ class Ansi implements hscript.iris.IrisUsingClass {
 	 * >>> Ansi.bg(RED) == "\x1B[41m"
 	 * </code></pre>
 	 */
-	inline public static function bg(str: String, color: AnsiColor): String
+	inline public static function bg(str:String, color:AnsiColor):String
 		return ESC + "4" + color + "m" + str;
 
 	/**
 	 * Clears the screen and moves the cursor to the home position
 	 */
-	inline public static function clearScreen(): String
+	inline public static function clearScreen():String
 		return ESC + "2Jm";
 
 	/**
 	 * Clear all characters from current position to the end of the line including the character at the current position
 	 */
-	inline public static function clearLine(): String
+	inline public static function clearLine():String
 		return ESC + "Km";
 
 	/**
@@ -122,25 +125,32 @@ class Ansi implements hscript.iris.IrisUsingClass {
 	 * >>> Ansi.fg(RED) == "\x1B[31m"
 	 * </code></pre>
 	 */
-	inline public static function fg(str: String, color: AnsiColor): String
+	inline public static function fg(str:String, color:AnsiColor):String
 		return ESC + "38;5;" + color + "m" + str;
 
-	private static var colorSupported: Null<Bool> = null;
+	private static var colorSupported:Null<Bool> = null;
 
-	public static function stripColor(output: String): String {
+	public static function stripColor(output:String):String
+	{
 		#if sys
-		if (colorSupported == null) {
+		if (colorSupported == null)
+		{
 			var term = Sys.getEnv("TERM");
 
-			if (term == "dumb") {
+			if (term == "dumb")
+			{
 				colorSupported = false;
-			} else {
-				if (colorSupported != true && term != null) {
+			}
+			else
+			{
+				if (colorSupported != true && term != null)
+				{
 					colorSupported = ~/(?i)-256(color)?$/.match(term)
 						|| ~/(?i)^screen|^xterm|^vt100|^vt220|^rxvt|color|ansi|cygwin|linux/.match(term);
 				}
 
-				if (colorSupported != true) {
+				if (colorSupported != true)
+				{
 					colorSupported = Sys.getEnv("TERM_PROGRAM") == "iTerm.app"
 						|| Sys.getEnv("TERM_PROGRAM") == "Apple_Terminal"
 						|| Sys.getEnv("COLORTERM") != null
@@ -151,7 +161,8 @@ class Ansi implements hscript.iris.IrisUsingClass {
 			}
 		}
 
-		if (colorSupported) {
+		if (colorSupported)
+		{
 			return output;
 		}
 		#end

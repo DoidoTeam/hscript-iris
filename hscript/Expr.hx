@@ -24,10 +24,11 @@ package hscript;
 
 import hscript.Types.ByteUInt;
 
-enum Const {
-	CInt(v: Int);
-	CFloat(f: Float);
-	CString(s: String, ?interp: Bool);
+enum Const
+{
+	CInt(v:Int);
+	CFloat(f:Float);
+	CString(s:String, ?interp:Bool);
 	#if !haxe3
 	CInt32(v:haxe.Int32);
 	#end
@@ -35,14 +36,16 @@ enum Const {
 
 #if hscriptPos
 @:structInit
-class Expr {
-	public var e: ExprDef;
-	public var pmin: Int;
-	public var pmax: Int;
-	public var origin: String;
-	public var line: Int;
+class Expr
+{
+	public var e:ExprDef;
+	public var pmin:Int;
+	public var pmax:Int;
+	public var origin:String;
+	public var line:Int;
 
-	public function toString(): String {
+	public function toString():String
+	{
 		return Std.string({
 			e: e,
 			pmin: pmin,
@@ -94,57 +97,72 @@ enum Expr
 	EUsing(name:String);
 }
 
-typedef Argument = {name: String, ?t: CType, ?opt: Bool, ?value: Expr};
-typedef Metadata = Array<{name: String, params: Array<Expr>}>;
+typedef Argument =
+{
+	name:String,
+	?t:CType,
+	?opt:Bool,
+	?value:Expr
+};
+
+typedef Metadata = Array<{name:String, params:Array<Expr>}>;
 
 @:structInit
-class SwitchCase {
-	public var values: Array<Expr>;
-	public var expr: Expr;
-	public var ifExpr: Null<Expr>;
+class SwitchCase
+{
+	public var values:Array<Expr>;
+	public var expr:Expr;
+	public var ifExpr:Null<Expr>;
 
-	public function toString(): String {
+	public function toString():String
+	{
 		return Std.string({values: values, expr: expr, ifExpr: ifExpr});
 	}
 }
 
 @:structInit
-class ObjectDecl {
-	public var name: String;
-	public var e: Expr;
+class ObjectDecl
+{
+	public var name:String;
+	public var e:Expr;
 
-	public function toString(): String {
+	public function toString():String
+	{
 		return Std.string({name: name, e: e});
 	}
 }
 
-typedef TypePath = {
-	var pack: Array<String>;
-	var name: String;
-	var params: Array<CType>;
-	var sub: String;
+typedef TypePath =
+{
+	var pack:Array<String>;
+	var name:String;
+	var params:Array<CType>;
+	var sub:String;
 }
 
-enum CType {
-	CTPath(path: TypePath);
-	CTFun(args: Array<CType>, ret: CType);
-	CTAnon(fields: Array<{name: String, t: CType, ?meta: Metadata}>);
-	CTExtend(t: Array<TypePath>, fields: Array<{name: String, t: CType, ?meta: Metadata}>);
-	CTParent(t: CType);
-	CTOpt(t: CType);
-	CTNamed(n: String, t: CType);
-	CTIntersection(types: Array<CType>);
+enum CType
+{
+	CTPath(path:TypePath);
+	CTFun(args:Array<CType>, ret:CType);
+	CTAnon(fields:Array<{name:String, t:CType, ?meta:Metadata}>);
+	CTExtend(t:Array<TypePath>, fields:Array<{name:String, t:CType, ?meta:Metadata}>);
+	CTParent(t:CType);
+	CTOpt(t:CType);
+	CTNamed(n:String, t:CType);
+	CTIntersection(types:Array<CType>);
 }
 
 #if hscriptPos
-class Error {
-	public var e: ErrorDef;
-	public var pmin: Int;
-	public var pmax: Int;
-	public var origin: String;
-	public var line: Int;
+class Error
+{
+	public var e:ErrorDef;
+	public var pmin:Int;
+	public var pmax:Int;
+	public var origin:String;
+	public var line:Int;
 
-	public function new(e, pmin, pmax, origin, line) {
+	public function new(e, pmin, pmax, origin, line)
+	{
 		this.e = e;
 		this.pmin = pmin;
 		this.pmax = pmax;
@@ -152,7 +170,8 @@ class Error {
 		this.line = line;
 	}
 
-	public function toString(): String {
+	public function toString():String
+	{
 		return Printer.errorToString(this);
 	}
 }
@@ -176,41 +195,47 @@ enum Error
 	EEmptyExpression;
 }
 
-enum ModuleDecl {
-	DPackage(path: Array<String>);
-	DImport(path: Array<String>, ?everything: Bool, ?as: String);
-	DClass(c: ClassDecl);
-	DTypedef(c: TypeDecl);
+enum ModuleDecl
+{
+	DPackage(path:Array<String>);
+	DImport(path:Array<String>, ?everything:Bool, ?as:String);
+	DClass(c:ClassDecl);
+	DTypedef(c:TypeDecl);
 }
 
-typedef ModuleType = {
-	var name: String;
-	var params: {}; // TODO : not yet parsed
-	var meta: Metadata;
-	var isPrivate: Bool;
+typedef ModuleType =
+{
+	var name:String;
+	var params:{}; // TODO : not yet parsed
+	var meta:Metadata;
+	var isPrivate:Bool;
 }
 
-typedef ClassDecl = {
+typedef ClassDecl =
+{
 	> ModuleType,
-	var extend: Null<CType>;
-	var implement: Array<CType>;
-	var fields: Array<FieldDecl>;
-	var isExtern: Bool;
+	var extend:Null<CType>;
+	var implement:Array<CType>;
+	var fields:Array<FieldDecl>;
+	var isExtern:Bool;
 }
 
-typedef TypeDecl = {
+typedef TypeDecl =
+{
 	> ModuleType,
-	var t: CType;
+	var t:CType;
 }
 
-typedef FieldDecl = {
-	var name: String;
-	var meta: Metadata;
-	var kind: FieldKind;
-	var access: Array<FieldAccess>;
+typedef FieldDecl =
+{
+	var name:String;
+	var meta:Metadata;
+	var kind:FieldKind;
+	var access:Array<FieldAccess>;
 }
 
-enum abstract FieldAccess(ByteUInt) {
+enum abstract FieldAccess(ByteUInt)
+{
 	var APublic;
 	var APrivate;
 	var AInline;
@@ -219,25 +244,29 @@ enum abstract FieldAccess(ByteUInt) {
 	var AMacro;
 }
 
-enum FieldKind {
-	KFunction(f: FunctionDecl);
-	KVar(v: VarDecl);
+enum FieldKind
+{
+	KFunction(f:FunctionDecl);
+	KVar(v:VarDecl);
 }
 
-typedef FunctionDecl = {
-	var args: Array<Argument>;
-	var expr: Expr;
-	var ret: Null<CType>;
+typedef FunctionDecl =
+{
+	var args:Array<Argument>;
+	var expr:Expr;
+	var ret:Null<CType>;
 }
 
-typedef VarDecl = {
-	var get: Null<String>;
-	var set: Null<String>;
-	var expr: Null<Expr>;
-	var type: Null<CType>;
+typedef VarDecl =
+{
+	var get:Null<String>;
+	var set:Null<String>;
+	var expr:Null<Expr>;
+	var type:Null<CType>;
 }
 
-enum EnumType {
-	ESimple(name: String);
-	EConstructor(name: String, args: Array<Argument>);
+enum EnumType
+{
+	ESimple(name:String);
+	EConstructor(name:String, args:Array<Argument>);
 }

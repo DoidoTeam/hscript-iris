@@ -8,21 +8,24 @@ import haxe.macro.Expr;
 /**
  * Based on CodenameCrew's DefinesMacro.hx
  */
-class DefineMacro {
+class DefineMacro
+{
 	/**
 	 * Contains defined values in the source
 	**/
-	public static var defines(get, never): Map<String, Dynamic>;
+	public static var defines(get, never):Map<String, Dynamic>;
 
-	private static function get_defines() {
+	private static function get_defines()
+	{
 		return getDefines();
 	}
 
 	#if macro
-	public static macro function getDefines(): Expr {
+	public static macro function getDefines():Expr
+	{
 		return macro $v{#if display [] #else Context.getDefines() #end};
 	}
 	#else
-	public static macro function getDefines(): Expr;
+	public static macro function getDefines():Expr;
 	#end
 }

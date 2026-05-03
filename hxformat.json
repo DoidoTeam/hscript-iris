@@ -1,10 +1,15 @@
 {
-    "whitespace": {
-        "typeHintColonPolicy": "after",
-        "typeCheckColonPolicy": "around",
-        "ternaryPolicy": "around"
-    },
-    "indentation": {
-        "character": "tab"
-    }
+	"lineEnds": {
+		"leftCurly": "both",
+		"rightCurly": "both",
+		"objectLiteralCurly": {
+			"leftCurly": "after"
+		}
+	},
+	"sameLine": {
+		"ifElse": "next",
+		"doWhile": "next",
+		"tryBody": "next",
+		"tryCatch": "next"
+	}
 }

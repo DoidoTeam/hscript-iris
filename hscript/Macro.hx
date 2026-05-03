@@ -28,17 +28,19 @@ import haxe.macro.Expr;
 import hscript.Expr.ErrorDef;
 #end
 
-class Macro {
-	var p: Position;
+class Macro
+{
+	var p:Position;
 	#if haxe3
-	var binops: Map<String, Binop>;
-	var unops: Map<String, Unop>;
+	var binops:Map<String, Binop>;
+	var unops:Map<String, Unop>;
 	#else
-	var binops: Hash<Binop>;
-	var unops: Hash<Unop>;
+	var binops:Hash<Binop>;
+	var unops:Hash<Unop>;
 	#end
 
-	public function new(pos) {
+	public function new(pos)
+	{
 		p = pos;
 		#if haxe3
 		binops = new Map();
@@ -47,12 +49,14 @@ class Macro {
 		binops = new Hash();
 		unops = new Hash();
 		#end
-		for (c in Type.getEnumConstructs(Binop)) {
+		for (c in Type.getEnumConstructs(Binop))
+		{
 			if (c == "OpAssignOp")
 				continue;
 			var op = Type.createEnum(Binop, c);
 			var assign = false;
-			var str = switch (op) {
+			var str = switch (op)
+			{
 				case OpAdd:
 					assign = true;
 					"+";
@@ -110,9 +114,11 @@ class Macro {
 			if (assign)
 				binops.set(str + "=", OpAssignOp(op));
 		}
-		for (c in Type.getEnumConstructs(Unop)) {
+		for (c in Type.getEnumConstructs(Unop))
+		{
 			var op = Type.createEnum(Unop, c);
-			var str = switch (op) {
+			var str = switch (op)
+			{
 				case OpNot: "!";
 				case OpNeg: "-";
 				case OpNegBits: "~";
@@ -127,21 +133,25 @@ class Macro {
 	}
 
 	#if !haxe3
-	function isType(v: String) {
+	function isType(v:String)
+	{
 		var c0 = v.charCodeAt(0);
 		return c0 >= 'A'.code && c0 <= 'Z'.code;
 	}
 	#end
 
-	function map<T, R>(a: Array<T>, f: T->R): Array<R> {
+	function map<T, R>(a:Array<T>, f:T->R):Array<R>
+	{
 		var b = new Array();
 		for (x in a)
 			b.push(f(x));
 		return b;
 	}
 
-	function convertType(t: Expr.CType): ComplexType {
-		return switch (t) {
+	function convertType(t:Expr.CType):ComplexType
+	{
+		return switch (t)
+		{
 			case CTOpt(t): TOptional(convertType(t));
 			case CTPath(pack, args):
 				var params = [];
@@ -165,7 +175,8 @@ class Macro {
 				#end
 			case CTAnon(fields):
 				var tf = [];
-				for (f in fields) {
+				for (f in fields)
+				{
 					var meta = f.meta == null ? [] : [
 						for (m in f.meta)
 							{name: m.name, params: m.params == null ? [] : [for (e in m.params) convert(e)], pos: p}
@@ -183,11 +194,14 @@ class Macro {
 		};
 	}
 
-	public function convert(e: hscript.Expr): Expr {
+	public function convert(e:hscript.Expr):Expr
+	{
 		return {
-			expr: switch (#if hscriptPos e.e #else e #end) {
+			expr: switch (#if hscriptPos e.e #else e #end)
+			{
 				case EConst(c):
-					EConst(switch (c) {
+					EConst(switch (c)
+					{
 						case CInt(v): CInt(Std.string(v));
 						case CFloat(f): CFloat(Std.string(f));
 						case CString(s): CString(s);

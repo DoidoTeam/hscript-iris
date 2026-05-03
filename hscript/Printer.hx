@@ -24,41 +24,47 @@ package hscript;
 
 import hscript.Expr;
 
-class Printer {
-	var buf: StringBuf;
-	var tabs: String;
+class Printer
+{
+	var buf:StringBuf;
+	var tabs:String;
 
-	var indent: String = "  ";
+	var indent:String = "  ";
 
 	public function new() {}
 
-	public function exprToString(e: Expr): String {
+	public function exprToString(e:Expr):String
+	{
 		buf = new StringBuf();
 		tabs = "";
 		expr(e);
 		return buf.toString();
 	}
 
-	public function typeToString(t: CType): String {
+	public function typeToString(t:CType):String
+	{
 		buf = new StringBuf();
 		tabs = "";
 		type(t);
 		return buf.toString();
 	}
 
-	inline function add<T>(s: T): Void
+	inline function add<T>(s:T):Void
 		buf.add(s);
 
-	public function typePath(tp: TypePath): Void {
+	public function typePath(tp:TypePath):Void
+	{
 		add(tp.pack.join("."));
 		if (tp.pack.length > 0)
 			add(".");
 		add(tp.name);
 		add((tp.sub != null && tp.sub.length > 0) ? "." + tp.sub : "");
-		if (tp.params != null && tp.params.length > 0) {
+		if (tp.params != null && tp.params.length > 0)
+		{
 			add("<");
 			var first = true;
-			for (p in tp.params) {
+			for (p in tp.params)
+			{
 				if (first)
 					first = false
 				else
@@ -69,8 +75,10 @@ class Printer {
 		}
 	}
 
-	function type(t: CType): Void {
-		switch (t) {
+	function type(t:CType):Void
+	{
+		switch (t)
+		{
 			case CTOpt(t):
 				add('?');
 				type(t);
@@ -83,7 +91,8 @@ class Printer {
 			case CTFun(args, ret) if (Lambda.exists(args, function(a) return a.match(CTNamed(_, _)))):
 				add('(');
 				for (a in args)
-					switch a {
+					switch a
+					{
 						case CTNamed(_, _): type(a);
 						default: type(CTNamed('_', a));
 					}
@@ -92,8 +101,10 @@ class Printer {
 			case CTFun(args, ret):
 				if (args.length == 0)
 					add("Void -> ");
-				else {
-					for (a in args) {
+				else
+				{
+					for (a in args)
+					{
 						type(a);
 						add(" -> ");
 					}
@@ -102,11 +113,14 @@ class Printer {
 			case CTAnon(fields):
 				add("{");
 				var first = true;
-				for (f in fields) {
-					if (first) {
+				for (f in fields)
+				{
+					if (first)
+					{
 						first = false;
 						add(" ");
-					} else
+					}
+					else
 						add(", ");
 					add(f.name + " : ");
 					type(f.t);
@@ -119,27 +133,34 @@ class Printer {
 			case CTExtend(t, fields):
 				add("{");
 				var first = true;
-				for (f in t) {
-					if (first) {
+				for (f in t)
+				{
+					if (first)
+					{
 						first = false;
 						add(" ");
-					} else
+					}
+					else
 						add(", ");
 					typePath(f);
 				}
 				var first = true;
-				for (f in fields) {
-					if (first) {
+				for (f in fields)
+				{
+					if (first)
+					{
 						first = false;
 						add(" ");
-					} else
+					}
+					else
 						add(", ");
 					add(f.name + " : ");
 					type(f.t);
 				}
 				add(first ? "}" : " }");
 			case CTIntersection(types):
-				for (i => t in types) {
+				for (i => t in types)
+				{
 					type(t);
 					if (i < types.length - 1)
 						add(" & ");
@@ -147,29 +168,36 @@ class Printer {
 		}
 	}
 
-	function addType(t: CType): Void {
-		if (t != null) {
+	function addType(t:CType):Void
+	{
+		if (t != null)
+		{
 			add(" : ");
 			type(t);
 		}
 	}
 
-	function addArgument(a: Argument): Void {
+	function addArgument(a:Argument):Void
+	{
 		if (a.opt)
 			add("?");
 		add(a.name);
 		addType(a.t);
 	}
 
-	function expr(e: Expr): Void {
-		if (e == null) {
+	function expr(e:Expr):Void
+	{
+		if (e == null)
+		{
 			add("??NULL??");
 			return;
 		}
-		switch (Tools.expr(e)) {
+		switch (Tools.expr(e))
+		{
 			case EIgnore(_):
 			case EConst(c):
-				switch (c) {
+				switch (c)
+				{
 					case CInt(i): add(i);
 					case CFloat(f): add(f);
 					case CString(s):
@@ -187,13 +215,17 @@ class Printer {
 			case EIdent(v):
 				add(v);
 			case EVar(n, t, e, c):
-				if (c) {
+				if (c)
+				{
 					add("final " + n);
-				} else {
+				}
+				else
+				{
 					add("var " + n);
 				}
 				addType(t);
-				if (e != null) {
+				if (e != null)
+				{
 					add(" = ");
 					expr(e);
 				}
@@ -202,14 +234,16 @@ class Printer {
 				expr(e);
 				add(")");
 			case EBlock(el):
-				if (el.length == 0) {
+				if (el.length == 0)
+				{
 					add("{}");
 					return;
 				}
 
 				incrementIndent();
 				add("{\n");
-				for (e in el) {
+				for (e in el)
+				{
 					add(tabs);
 					expr(e);
 					add(";\n");
@@ -219,9 +253,12 @@ class Printer {
 				add("}");
 			case EField(e, f, s):
 				expr(e);
-				if (s) {
+				if (s)
+				{
 					add("?." + f);
-				} else {
+				}
+				else
+				{
 					add("." + f);
 				}
 			case EBinop(op, e1, e2):
@@ -229,10 +266,13 @@ class Printer {
 				add(" " + op + " ");
 				expr(e2);
 			case EUnop(op, pre, e):
-				if (pre) {
+				if (pre)
+				{
 					add(op);
 					expr(e);
-				} else {
+				}
+				else
+				{
 					expr(e);
 					add(op);
 				}
@@ -240,7 +280,8 @@ class Printer {
 				if (e == null)
 					expr(e);
 				else
-					switch (Tools.expr(e)) {
+					switch (Tools.expr(e))
+					{
 						case EField(_), EIdent(_), EConst(_):
 							expr(e);
 						default:
@@ -250,7 +291,8 @@ class Printer {
 					}
 				add("(");
 				var first = true;
-				for (a in args) {
+				for (a in args)
+				{
 					if (first)
 						first = false
 					else
@@ -263,7 +305,8 @@ class Printer {
 				expr(cond);
 				add(" ) ");
 				expr(e1);
-				if (e2 != null) {
+				if (e2 != null)
+				{
 					add(" else ");
 					expr(e2);
 				}
@@ -293,7 +336,8 @@ class Printer {
 					add(" " + name);
 				add("(");
 				var first = true;
-				for (a in params) {
+				for (a in params)
+				{
 					if (first)
 						first = false
 					else
@@ -306,7 +350,8 @@ class Printer {
 				expr(e);
 			case EReturn(e):
 				add("return");
-				if (e != null) {
+				if (e != null)
+				{
 					add(" ");
 					expr(e);
 				}
@@ -322,7 +367,8 @@ class Printer {
 			case EArrayDecl(el):
 				add("[");
 				var first = true;
-				for (e in el) {
+				for (e in el)
+				{
 					if (first)
 						first = false
 					else
@@ -333,7 +379,8 @@ class Printer {
 			case ENew(cl, args):
 				add("new " + cl + "(");
 				var first = true;
-				for (e in args) {
+				for (e in args)
+				{
 					if (first)
 						first = false
 					else
@@ -352,13 +399,15 @@ class Printer {
 				add(") ");
 				expr(ecatch);
 			case EObject(fl):
-				if (fl.length == 0) {
+				if (fl.length == 0)
+				{
 					add("{}");
 					return;
 				}
 				incrementIndent();
 				add("{\n");
-				for (i => f in fl) {
+				for (i => f in fl)
+				{
 					add(tabs);
 					add(f.name + " : ");
 					expr(f.e);
@@ -380,12 +429,14 @@ class Printer {
 				expr(e);
 				add(" {");
 				incrementIndent();
-				for (c in cases) {
+				for (c in cases)
+				{
 					add("\n");
 					add(tabs);
 					add("case ");
 					var first = true;
-					for (v in c.values) {
+					for (v in c.values)
+					{
 						if (first)
 							first = false
 						else
@@ -396,7 +447,8 @@ class Printer {
 					expr(c.expr);
 					add(";");
 				}
-				if (def != null) {
+				if (def != null)
+				{
 					add("\n");
 					add(tabs);
 					add("default: ");
@@ -404,7 +456,8 @@ class Printer {
 					add(";");
 				}
 				decrementIndent();
-				if (cases.length > 0) {
+				if (cases.length > 0)
+				{
 					add("\n");
 					add(tabs);
 				}
@@ -412,10 +465,12 @@ class Printer {
 			case EMeta(name, args, e):
 				add("@");
 				add(name);
-				if (args != null && args.length > 0) {
+				if (args != null && args.length > 0)
+				{
 					add("(");
 					var first = true;
-					for (a in args) {
+					for (a in args)
+					{
 						if (first)
 							first = false
 						else
@@ -433,15 +488,18 @@ class Printer {
 				addType(t);
 				add(")");
 			case EEnum(name, params):
-				if (params.length == 0) {
+				if (params.length == 0)
+				{
 					add("enum " + name + " {}");
 					return;
 				}
 				add("enum " + name + " {\n");
 				incrementIndent();
-				for (p in params) {
+				for (p in params)
+				{
 					add(tabs);
-					switch p {
+					switch p
+					{
 						case EConstructor(name, args):
 							add(name);
 							add("(");
@@ -464,20 +522,25 @@ class Printer {
 		}
 	}
 
-	inline function incrementIndent(): Void {
+	inline function incrementIndent():Void
+	{
 		tabs += indent;
 	}
 
-	inline function decrementIndent(): Void {
+	inline function decrementIndent():Void
+	{
 		tabs = tabs.substr(indent.length);
 	}
 
-	public static function toString(e: Expr): String {
+	public static function toString(e:Expr):String
+	{
 		return new Printer().exprToString(e);
 	}
 
-	public static function errorToString(e: Expr.Error, showPos: Bool = true): String {
-		var message = switch (#if hscriptPos e.e #else e #end) {
+	public static function errorToString(e:Expr.Error, showPos:Bool = true):String
+	{
+		var message = switch (#if hscriptPos e.e #else e #end)
+		{
 			case EInvalidChar(c): "Invalid character: '" + (StringTools.isEof(c) ? "EOF" : String.fromCharCode(c)) + "' (" + c + ")";
 			case EUnexpected(s): "Unexpected token: \"" + s + "\"";
 			case EUnterminatedString: "Unterminated string";

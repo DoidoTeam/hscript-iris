@@ -6,16 +6,20 @@ import hscript.iris.utils.Ansi;
  * Declares the severity of an error,
  * adds a little prefix to printing showing which kind of failure it is
 **/
-enum ErrorSeverity {
+enum ErrorSeverity
+{
 	NONE;
 	WARN;
 	ERROR;
 	FATAL;
 }
 
-class ErrorSeverityTools implements hscript.iris.IrisUsingClass {
-	public static function getPrefix(severity: ErrorSeverity): String {
-		return switch (severity) {
+class ErrorSeverityTools implements hscript.iris.IrisUsingClass
+{
+	public static function getPrefix(severity:ErrorSeverity):String
+	{
+		return switch (severity)
+		{
 			case NONE: "";
 			// case WARN: "WARN ";
 			// case ERROR: "ERROR";
@@ -25,8 +29,10 @@ class ErrorSeverityTools implements hscript.iris.IrisUsingClass {
 		}
 	}
 
-	public static function getColor(severity: ErrorSeverity): AnsiColor {
-		return switch (severity) {
+	public static function getColor(severity:ErrorSeverity):AnsiColor
+	{
+		return switch (severity)
+		{
 			case NONE: AnsiColor.DEFAULT;
 			case WARN: AnsiColor.YELLOW;
 			case ERROR: AnsiColor.RED;

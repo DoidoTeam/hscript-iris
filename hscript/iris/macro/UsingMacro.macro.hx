@@ -23,9 +23,11 @@ using haxe.macro.Tools;
  * ```
  * @author NeeEoo
 **/
-class UsingMacro {
-	public static function build() {
-		var cls: haxe.macro.Type.ClassType = Context.getLocalClass().get();
+class UsingMacro
+{
+	public static function build()
+	{
+		var cls:haxe.macro.Type.ClassType = Context.getLocalClass().get();
 		var fields = Context.getBuildFields();
 
 		var packName = (cls.pack.length > 0 ? cls.pack.join(".") + "." : "") + cls.name;
@@ -38,8 +40,10 @@ class UsingMacro {
 		var hasParams = entryField != null && entryField.params != null;
 		var forceAny = false;
 		var onlyBasic = false;
-		if (hasParams) {
-			for (i in 0...entryField.params.length) {
+		if (hasParams)
+		{
+			for (i in 0...entryField.params.length)
+			{
 				if (entryField.params[i].expr.match(EConst(CIdent("onlyBasic"))))
 					onlyBasic = true;
 				if (entryField.params[i].expr.match(EConst(CIdent("forceAny"))))
@@ -47,9 +51,10 @@ class UsingMacro {
 			}
 		}
 
-		var data: Array<Array<String>> = [];
+		var data:Array<Array<String>> = [];
 
-		for (field in fields) {
+		for (field in fields)
+		{
 			// functions marked with @:noUsing won't be able to be used by variables
 			if (field.meta.find(function(m) return m.name == ':noUsing') != null)
 				continue;
@@ -60,7 +65,8 @@ class UsingMacro {
 			// if (field.isPublic == false)
 			//	continue;
 
-			switch (field.kind) {
+			switch (field.kind)
+			{
 				default:
 				case FFun(f):
 					if (f.args.length == 0)
@@ -70,7 +76,8 @@ class UsingMacro {
 						continue;
 					var type = arg.type;
 
-					var valueType: String = switch (type) {
+					var valueType:String = switch (type)
+					{
 						case TPath({name: "Int", pack: []}):
 							"TInt";
 						case TPath({name: "Float", pack: []}):
@@ -97,17 +104,20 @@ class UsingMacro {
 					}
 
 					// MIGHT CRASH COMPILATION?
-					if (!onlyBasic && valueType == null) {
+					if (!onlyBasic && valueType == null)
+					{
 						var rtype = type.toType();
 
-						switch (rtype) {
+						switch (rtype)
+						{
 							case TInst(t, []):
 								valueType = "TClass(" + t.toString() + ")";
 							default:
 						}
 					}
 
-					if (forceAny) {
+					if (forceAny)
+					{
 						valueType = null;
 					}
 
@@ -118,8 +128,8 @@ class UsingMacro {
 		fields.push({
 			name: '__irisUsing_' + packName.replace(".", "_"),
 			access: [APrivate, AStatic],
-			kind: FVar(macro : Map<String, Type.ValueType>, {
-				var arr: Array<Expr> = [];
+			kind: FVar(macro :Map<String, Type.ValueType>, {
+				var arr:Array<Expr> = [];
 				for (i in data)
 					if (i[1] != null)
 						arr.push(macro $v{i[0]} => ${Context.parse("Type.ValueType." + i[1], Context.currentPos())});

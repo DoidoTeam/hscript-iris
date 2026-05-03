@@ -5,13 +5,15 @@ package hscript;
 **/
 @:keepSub
 @:access(hscript.Interp)
-class InterpIterator {
-	public var min: Int;
-	public var max: Int;
+class InterpIterator
+{
+	public var min:Int;
+	public var max:Int;
 
-	public inline function new(instance: Interp, expr1: Expr, expr2: Expr) {
-		var min: Dynamic = instance.expr(expr1);
-		var max: Dynamic = instance.expr(expr2);
+	public inline function new(instance:Interp, expr1:Expr, expr2:Expr)
+	{
+		var min:Dynamic = instance.expr(expr1);
+		var max:Dynamic = instance.expr(expr2);
 
 		if (min == null)
 			instance.error(ECustom('null should be Int'));
@@ -32,11 +34,13 @@ class InterpIterator {
 		this.max = max;
 	}
 
-	public inline function hasNext(): Bool {
+	public inline function hasNext():Bool
+	{
 		return min < max;
 	}
 
-	public inline function next(): Int {
+	public inline function next():Int
+	{
 		return min++;
 	}
 }

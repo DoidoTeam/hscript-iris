@@ -8,95 +8,108 @@ import hscript.Expr;
 **/
 typedef TypeCheck<Real, Script> = Real;
 
-enum TType {
-	TMono(r: {r: TType});
+enum TType
+{
+	TMono(r:{r:TType});
 	TVoid;
 	TInt;
 	TFloat;
 	TBool;
 	TDynamic;
-	TParam(name: String);
-	TUnresolved(name: String);
-	TNull(t: TType);
-	TInst(c: CClass, args: Array<TType>);
-	TEnum(e: CEnum, args: Array<TType>);
-	TType(t: CTypedef, args: Array<TType>);
-	TAbstract(a: CAbstract, args: Array<TType>);
-	TFun(args: Array<{name: String, opt: Bool, t: TType}>, ret: TType);
-	TAnon(fields: Array<{name: String, opt: Bool, t: TType}>);
-	TLazy(f: Void->TType);
+	TParam(name:String);
+	TUnresolved(name:String);
+	TNull(t:TType);
+	TInst(c:CClass, args:Array<TType>);
+	TEnum(e:CEnum, args:Array<TType>);
+	TType(t:CTypedef, args:Array<TType>);
+	TAbstract(a:CAbstract, args:Array<TType>);
+	TFun(args:Array<{name:String, opt:Bool, t:TType}>, ret:TType);
+	TAnon(fields:Array<{name:String, opt:Bool, t:TType}>);
+	TLazy(f:Void->TType);
 }
 
-private enum WithType {
+private enum WithType
+{
 	NoValue;
 	Value;
-	WithType(t: TType);
+	WithType(t:TType);
 }
 
-enum CTypedecl {
-	CTClass(c: CClass);
-	CTEnum(e: CEnum);
-	CTTypedef(t: CTypedef);
-	CTAlias(t: TType);
-	CTAbstract(a: CAbstract);
+enum CTypedecl
+{
+	CTClass(c:CClass);
+	CTEnum(e:CEnum);
+	CTTypedef(t:CTypedef);
+	CTAlias(t:TType);
+	CTAbstract(a:CAbstract);
 }
 
-typedef CNamedType = {
-	var name: String;
-	var params: Array<TType>;
+typedef CNamedType =
+{
+	var name:String;
+	var params:Array<TType>;
 }
 
-typedef CClass = {
+typedef CClass =
+{
 	> CNamedType,
-	@:optional var superClass: TType;
-	@:optional var constructor: CField;
-	@:optional var interfaces: Array<TType>;
-	@:optional var isInterface: Bool;
-	var fields: Map<String, CField>;
-	var statics: Map<String, CField>;
+	@:optional var superClass:TType;
+	@:optional var constructor:CField;
+	@:optional var interfaces:Array<TType>;
+	@:optional var isInterface:Bool;
+	var fields:Map<String, CField>;
+	var statics:Map<String, CField>;
 }
 
-typedef CField = {
-	var isPublic: Bool;
-	var canWrite: Bool;
-	var complete: Bool;
-	var params: Array<TType>;
-	var name: String;
-	var t: TType;
+typedef CField =
+{
+	var isPublic:Bool;
+	var canWrite:Bool;
+	var complete:Bool;
+	var params:Array<TType>;
+	var name:String;
+	var t:TType;
 }
 
-typedef CEnum = {
+typedef CEnum =
+{
 	> CNamedType,
-	var constructors: Array<{name: String, ?args: Array<{name: String, opt: Bool, t: TType}>}>;
+	var constructors:Array<{name:String, ?args:Array<{name:String, opt:Bool, t:TType}>}>;
 }
 
-typedef CTypedef = {
+typedef CTypedef =
+{
 	> CNamedType,
-	var t: TType;
+	var t:TType;
 }
 
-typedef CAbstract = {
+typedef CAbstract =
+{
 	> CNamedType,
-	var t: TType;
+	var t:TType;
 }
 
-class Completion {
-	public var expr: Expr;
-	public var t: TType;
+class Completion
+{
+	public var expr:Expr;
+	public var t:TType;
 
-	public function new(expr, t) {
+	public function new(expr, t)
+	{
 		this.expr = expr;
 		this.t = t;
 	}
 }
 
 @:allow(hscript.Checker)
-class CheckerTypes {
-	var types: Map<String, CTypedecl> = new Map();
-	var t_string: TType;
-	var localParams: Map<String, TType>;
+class CheckerTypes
+{
+	var types:Map<String, CTypedecl> = new Map();
+	var t_string:TType;
+	var localParams:Map<String, TType>;
 
-	public function new() {
+	public function new()
+	{
 		types = new Map();
 		types.set("Void", CTAlias(TVoid));
 		types.set("Int", CTAlias(TInt));
@@ -105,7 +118,8 @@ class CheckerTypes {
 		types.set("Dynamic", CTAlias(TDynamic));
 	}
 
-	public function addXmlApi(api: Xml) {
+	public function addXmlApi(api:Xml)
+	{
 		var types = new haxe.rtti.XmlParser();
 		types.process(api, "");
 		var todo = [];
@@ -116,15 +130,17 @@ class CheckerTypes {
 		t_string = getType("String");
 	}
 
-	function addXmlType(x: haxe.rtti.CType.TypeTree, todo: Array<Void->Void>) {
-		switch (x) {
+	function addXmlType(x:haxe.rtti.CType.TypeTree, todo:Array<Void->Void>)
+	{
+		switch (x)
+		{
 			case TPackage(name, full, subs):
 				for (s in subs)
 					addXmlType(s, todo);
 			case TClassdecl(c):
 				if (types.exists(c.path))
 					return;
-				var cl: CClass = {
+				var cl:CClass = {
 					name: c.path,
 					params: [],
 					fields: new Map(),
@@ -134,23 +150,28 @@ class CheckerTypes {
 					cl.isInterface = true;
 				for (p in c.params)
 					cl.params.push(TParam(p));
-				todo.push(function() {
+				todo.push(function()
+				{
 					localParams = [for (t in cl.params) c.path + "." + Checker.typeStr(t) => t];
 					if (c.superClass != null)
 						cl.superClass = getType(c.superClass.path, [for (t in c.superClass.params) makeXmlType(t)]);
-					if (c.interfaces != null) {
+					if (c.interfaces != null)
+					{
 						cl.interfaces = [];
 						for (i in c.interfaces)
 							cl.interfaces.push(getType(i.path, [for (t in i.params) makeXmlType(t)]));
 					}
 					var pkeys = [];
-					for (f in c.fields) {
+					for (f in c.fields)
+					{
 						if (f.isOverride || f.name.substr(0, 4) == "get_" || f.name.substr(0, 4) == "set_")
 							continue;
 						var skip = false;
 						var complete = !StringTools.startsWith(f.name, "__"); // __uid, etc. (no metadata in such fields)
-						for (m in f.meta) {
-							if (m.name == ":noScript") {
+						for (m in f.meta)
+						{
+							if (m.name == ":noScript")
+							{
 								skip = true;
 								break;
 							}
@@ -159,7 +180,7 @@ class CheckerTypes {
 						}
 						if (skip)
 							continue;
-						var fl: CField = {
+						var fl:CField = {
 							isPublic: f.isPublic,
 							canWrite: f.set.match(RNormal | RCall(_) | RDynamic),
 							complete: complete,
@@ -167,7 +188,8 @@ class CheckerTypes {
 							name: f.name,
 							t: null
 						};
-						for (p in f.params) {
+						for (p in f.params)
+						{
 							var pt = TParam(p);
 							var key = f.name + "." + p;
 							pkeys.push(key);
@@ -188,14 +210,15 @@ class CheckerTypes {
 			case TEnumdecl(e):
 				if (types.exists(e.path))
 					return;
-				var en: CEnum = {
+				var en:CEnum = {
 					name: e.path,
 					params: [],
 					constructors: [],
 				};
 				for (p in e.params)
 					en.params.push(TParam(p));
-				todo.push(function() {
+				todo.push(function()
+				{
 					localParams = [for (t in en.params) e.path + "." + Checker.typeStr(t) => t];
 					for (c in e.constructors)
 						en.constructors.push({name: c.name, args: c.args == null ? null : [for (a in c.args) {name: a.name, opt: a.opt, t: makeXmlType(a.t)}]});
@@ -205,7 +228,7 @@ class CheckerTypes {
 			case TTypedecl(t):
 				if (types.exists(t.path))
 					return;
-				var td: CTypedef = {
+				var td:CTypedef = {
 					name: t.path,
 					params: [],
 					t: null,
@@ -214,7 +237,8 @@ class CheckerTypes {
 					td.params.push(TParam(p));
 				if (t.path == "hscript.TypeCheck")
 					td.params.reverse();
-				todo.push(function() {
+				todo.push(function()
+				{
 					localParams = [for (pt in td.params) t.path + "." + Checker.typeStr(pt) => pt];
 					td.t = makeXmlType(t.type);
 					localParams = null;
@@ -223,14 +247,15 @@ class CheckerTypes {
 			case TAbstractdecl(a):
 				if (types.exists(a.path))
 					return;
-				var ta: CAbstract = {
+				var ta:CAbstract = {
 					name: a.path,
 					params: [],
 					t: null,
 				};
 				for (p in a.params)
 					ta.params.push(TParam(p));
-				todo.push(function() {
+				todo.push(function()
+				{
 					localParams = [for (t in ta.params) a.path + "." + Checker.typeStr(t) => t];
 					ta.t = makeXmlType(a.athis);
 					localParams = null;
@@ -239,20 +264,24 @@ class CheckerTypes {
 		}
 	}
 
-	function makeXmlType(t: haxe.rtti.CType.CType): TType {
-		return switch (t) {
+	function makeXmlType(t:haxe.rtti.CType.CType):TType
+	{
+		return switch (t)
+		{
 			case CUnknown: TUnresolved("Unknown");
 			case CEnum(name, params): getType(name, [for (t in params) makeXmlType(t)]);
 			case CClass(name, params): getType(name, [for (t in params) makeXmlType(t)]);
 			case CTypedef(name, params): getType(name, [for (t in params) makeXmlType(t)]);
 			case CFunction(args, ret): TFun([for (a in args) {name: a.name, opt: a.opt, t: makeXmlType(a.t)}], makeXmlType(ret));
 			case CAnonymous(fields):
-				inline function isOpt(m: haxe.rtti.CType.MetaData) {
+				inline function isOpt(m:haxe.rtti.CType.MetaData)
+				{
 					if (m == null)
 						return false;
 					var b = false;
 					for (m in m)
-						if (m.name == ":optional") {
+						if (m.name == ":optional")
+						{
 							b = true;
 							break;
 						}
@@ -261,26 +290,32 @@ class CheckerTypes {
 				TAnon([for (f in fields) {name: f.name, t: makeXmlType(f.type), opt: isOpt(f.meta)}]);
 			case CDynamic(t): TDynamic;
 			case CAbstract(name, params):
-				switch (name) {
+				switch (name)
+				{
 					default:
 						getType(name, [for (t in params) makeXmlType(t)]);
 				}
 		}
 	}
 
-	function getType(name: String, ?args: Array<TType>): TType {
-		if (localParams != null) {
+	function getType(name:String, ?args:Array<TType>):TType
+	{
+		if (localParams != null)
+		{
 			var t = localParams.get(name);
 			if (t != null)
 				return t;
 		}
 		var t = resolve(name, args);
-		if (t == null) {
+		if (t == null)
+		{
 			var pack = name.split(".");
-			if (pack.length > 1) {
+			if (pack.length > 1)
+			{
 				// bugfix for some args reported as pack._Name.Name while they are not private
 				var priv = pack[pack.length - 2];
-				if (priv.charCodeAt(0) == "_".code) {
+				if (priv.charCodeAt(0) == "_".code)
+				{
 					pack.remove(priv);
 					return getType(pack.join("."), args);
 				}
@@ -290,8 +325,10 @@ class CheckerTypes {
 		return t;
 	}
 
-	public function resolve(name: String, ?args: Array<TType>): TType {
-		if (name == "Null") {
+	public function resolve(name:String, ?args:Array<TType>):TType
+	{
+		if (name == "Null")
+		{
 			if (args == null || args.length != 1)
 				throw "Missing Null<T> parameter";
 			return TNull(args[0]);
@@ -301,7 +338,8 @@ class CheckerTypes {
 			return null;
 		if (args == null)
 			args = [];
-		return switch (t) {
+		return switch (t)
+		{
 			case CTClass(c): TInst(c, args);
 			case CTEnum(e): TEnum(e, args);
 			case CTTypedef(t): TType(t, args);
@@ -311,60 +349,71 @@ class CheckerTypes {
 	}
 }
 
-class Checker {
-	public var types: CheckerTypes;
+class Checker
+{
+	public var types:CheckerTypes;
 
-	var locals: Map<String, TType>;
-	var globals: Map<String, TType> = new Map();
-	var events: Map<String, TType> = new Map();
-	var currentFunType: TType;
-	var isCompletion: Bool;
-	var allowDefine: Bool;
+	var locals:Map<String, TType>;
+	var globals:Map<String, TType> = new Map();
+	var events:Map<String, TType> = new Map();
+	var currentFunType:TType;
+	var isCompletion:Bool;
+	var allowDefine:Bool;
 
-	public var allowAsync: Bool;
-	public var allowReturn: Null<TType>;
-	public var allowGlobalsDefine: Bool;
-	public var allowUntypedMeta: Bool;
+	public var allowAsync:Bool;
+	public var allowReturn:Null<TType>;
+	public var allowGlobalsDefine:Bool;
+	public var allowUntypedMeta:Bool;
 
-	public function new(?types) {
+	public function new(?types)
+	{
 		if (types == null)
 			types = new CheckerTypes();
 		this.types = types;
 	}
 
-	public function setGlobals(cl: CClass) {
-		while (true) {
+	public function setGlobals(cl:CClass)
+	{
+		while (true)
+		{
 			for (f in cl.fields)
 				if (f.isPublic)
 					setGlobal(f.name, f.params.length == 0 ? f.t : TLazy(function() return apply(f.t, f.params, [for (i in 0...f.params.length) makeMono()])));
 			if (cl.superClass == null)
 				break;
-			cl = switch (cl.superClass) {
+			cl = switch (cl.superClass)
+			{
 				case TInst(c, _): c;
 				default: throw "assert";
 			}
 		}
 	}
 
-	public function removeGlobal(name: String) {
+	public function removeGlobal(name:String)
+	{
 		globals.remove(name);
 	}
 
-	public function setGlobal(name: String, type: TType) {
+	public function setGlobal(name:String, type:TType)
+	{
 		globals.set(name, type);
 	}
 
-	public function setEvent(name: String, type: TType) {
+	public function setEvent(name:String, type:TType)
+	{
 		events.set(name, type);
 	}
 
-	public function getGlobals() {
+	public function getGlobals()
+	{
 		return globals;
 	}
 
-	function typeArgs(args: Array<Argument>, pos: Expr) {
+	function typeArgs(args:Array<Argument>, pos:Expr)
+	{
 		return [
-			for (i in 0...args.length) {
+			for (i in 0...args.length)
+			{
 				var a = args[i];
 				var at = a.t == null ? makeMono() : makeType(a.t, pos);
 				{name: a.name, opt: a.opt, t: at};
@@ -372,29 +421,36 @@ class Checker {
 		];
 	}
 
-	public function check(expr: Expr, ?withType: WithType, ?isCompletion = false) {
+	public function check(expr:Expr, ?withType:WithType, ?isCompletion = false)
+	{
 		if (withType == null)
 			withType = NoValue;
 		locals = new Map();
 		allowDefine = allowGlobalsDefine;
 		this.isCompletion = isCompletion;
-		switch (edef(expr)) {
+		switch (edef(expr))
+		{
 			case EBlock(el):
 				var delayed = [];
 				var last = TVoid;
-				for (e in el) {
-					while (true) {
-						switch (edef(e)) {
+				for (e in el)
+				{
+					while (true)
+					{
+						switch (edef(e))
+						{
 							case EMeta(_, _, e2): e = e2;
 							default: break;
 						}
 					}
-					switch (edef(e)) {
+					switch (edef(e))
+					{
 						case EFunction(args, _, name, ret) if (name != null):
 							var tret = ret == null ? makeMono() : makeType(ret, e);
 							var ft = TFun(typeArgs(args, e), tret);
 							locals.set(name, ft);
-							delayed.push(function() {
+							delayed.push(function()
+							{
 								currentFunType = ft;
 								typeExpr(e, NoValue);
 								return ft;
@@ -414,7 +470,8 @@ class Checker {
 		return typeExpr(expr, withType);
 	}
 
-	inline function edef(e: Expr) {
+	inline function edef(e:Expr)
+	{
 		#if hscriptPos
 		return e.e;
 		#else
@@ -422,22 +479,27 @@ class Checker {
 		#end
 	}
 
-	inline function error(msg: String, curExpr: Expr) {
+	inline function error(msg:String, curExpr:Expr)
+	{
 		var e = ECustom(msg);
 		#if hscriptPos var e = new Error(e, curExpr.pmin, curExpr.pmax, curExpr.origin, curExpr.line); #end
 		if (!isCompletion)
 			throw e;
 	}
 
-	function saveLocals() {
+	function saveLocals()
+	{
 		return [for (k in locals.keys()) k => locals.get(k)];
 	}
 
-	function makeType(t: CType, e: Expr): TType {
-		return switch (t) {
+	function makeType(t:CType, e:Expr):TType
+	{
+		return switch (t)
+		{
 			case CTPath(path, params):
 				var ct = types.resolve(path.join("."), params == null ? [] : [for (p in params) makeType(p, e)]);
-				if (ct == null) {
+				if (ct == null)
+				{
 					error("Unknown type " + path, e);
 					ct = TDynamic;
 				}
@@ -456,10 +518,12 @@ class Checker {
 		}
 	}
 
-	public static function typeStr(t: TType) {
-		inline function makeArgs(args: Array<TType>)
+	public static function typeStr(t:TType)
+	{
+		inline function makeArgs(args:Array<TType>)
 			return args.length == 0 ? "" : "<" + [for (t in args) typeStr(t)].join(",") + ">";
-		return switch (t) {
+		return switch (t)
+		{
 			case TMono(r): r.r == null ? "Unknown" : typeStr(r.r);
 			case TInst(c, args): c.name + makeArgs(args);
 			case TEnum(e, args): e.name + makeArgs(args);
@@ -478,10 +542,12 @@ class Checker {
 		}
 	}
 
-	function linkLoop(a: TType, t: TType) {
+	function linkLoop(a:TType, t:TType)
+	{
 		if (t == a)
 			return true;
-		switch (t) {
+		switch (t)
+		{
 			case TMono(r):
 				if (r.r == null)
 					return false;
@@ -510,7 +576,8 @@ class Checker {
 		}
 	}
 
-	function link(a: TType, b: TType, r: {r: TType}) {
+	function link(a:TType, b:TType, r:{r:TType})
+	{
 		if (linkLoop(a, b))
 			return follow(b) == a;
 		if (b == TDynamic)
@@ -519,12 +586,15 @@ class Checker {
 		return true;
 	}
 
-	function typeEq(t1: TType, t2: TType) {
+	function typeEq(t1:TType, t2:TType)
+	{
 		if (t1 == t2)
 			return true;
-		switch ([t1, t2]) {
+		switch ([t1, t2])
+		{
 			case [TMono(r), _]:
-				if (r.r == null) {
+				if (r.r == null)
+				{
 					if (!link(t1, t2, r))
 						return false;
 					r.r = t2;
@@ -532,7 +602,8 @@ class Checker {
 				}
 				return typeEq(r.r, t2);
 			case [_, TMono(r)]:
-				if (r.r == null) {
+				if (r.r == null)
+				{
 					if (!link(t2, t1, r))
 						return false;
 					r.r = t1;
@@ -578,7 +649,8 @@ class Checker {
 				var m = new Map();
 				for (f in a2)
 					m.set(f.name, f);
-				for (f1 in a1) {
+				for (f1 in a1)
+				{
 					var f2 = m.get(f1.name);
 					if (f2 == null)
 						return false;
@@ -591,12 +663,15 @@ class Checker {
 		return false;
 	}
 
-	function tryUnify(t1: TType, t2: TType) {
+	function tryUnify(t1:TType, t2:TType)
+	{
 		if (t1 == t2)
 			return true;
-		switch ([t1, t2]) {
+		switch ([t1, t2])
+		{
 			case [TMono(r), _]:
-				if (r.r == null) {
+				if (r.r == null)
+				{
 					if (!link(t1, t2, r))
 						return false;
 					r.r = t2;
@@ -604,7 +679,8 @@ class Checker {
 				}
 				return tryUnify(r.r, t2);
 			case [_, TMono(r)]:
-				if (r.r == null) {
+				if (r.r == null)
+				{
 					if (!link(t2, t1, r))
 						return false;
 					r.r = t1;
@@ -620,7 +696,8 @@ class Checker {
 			case [_, TNull(t2)]:
 				return tryUnify(t1, t2);
 			case [TFun(args1, r1), TFun(args2, r2)] if (args1.length == args2.length):
-				for (i in 0...args1.length) {
+				for (i in 0...args1.length)
+				{
 					var a1 = args1[i];
 					var a2 = args2[i];
 					if (a2.opt && !a1.opt)
@@ -639,9 +716,11 @@ class Checker {
 				var m = new Map();
 				for (f in a1)
 					m.set(f.name, f);
-				for (f2 in a2) {
+				for (f2 in a2)
+				{
 					var f1 = m.get(f2.name);
-					if (f1 == null) {
+					if (f1 == null)
+					{
 						if (f2.opt)
 							continue;
 						return false;
@@ -651,10 +730,14 @@ class Checker {
 				}
 				return true;
 			case [TInst(cl1, pl1), TInst(cl2, pl2)]:
-				while (cl1 != cl2) {
-					if (cl1.interfaces != null) {
-						for (i in cl1.interfaces) {
-							switch (i) {
+				while (cl1 != cl2)
+				{
+					if (cl1.interfaces != null)
+					{
+						for (i in cl1.interfaces)
+						{
+							switch (i)
+							{
 								case TInst(cli, args):
 									var i = TInst(cli, [for (a in args) apply(a, cl1.params, pl1)]);
 									if (tryUnify(i, t2)) return true;
@@ -663,7 +746,8 @@ class Checker {
 							}
 						}
 					}
-					switch (cl1.superClass) {
+					switch (cl1.superClass)
+					{
 						case null: return false;
 						case TInst(c, args):
 							pl1 = [for (a in args) apply(a, cl1.params, pl1)];
@@ -676,17 +760,20 @@ class Checker {
 						return false;
 				return true;
 			case [TInst(cl1, pl1), TAnon(fl)]:
-				for (i in 0...fl.length) {
+				for (i in 0...fl.length)
+				{
 					var f2 = fl[i];
 					var f1 = null;
 					var cl = cl1;
-					while (true) {
+					while (true)
+					{
 						f1 = cl.fields.get(f2.name);
 						if (f1 != null)
 							break;
 						if (cl.superClass == null)
 							return false;
-						cl = switch (cl.superClass) {
+						cl = switch (cl.superClass)
+						{
 							case TInst(c, _): c;
 							default: throw "assert";
 						}
@@ -704,12 +791,14 @@ class Checker {
 		return typeEq(t1, t2);
 	}
 
-	public function unify(t1: TType, t2: TType, e: Expr) {
+	public function unify(t1:TType, t2:TType, e:Expr)
+	{
 		if (!tryUnify(t1, t2))
 			error(typeStr(t1) + " should be " + typeStr(t2), e);
 	}
 
-	public function apply(t: TType, params: Array<TType>, args: Array<TType>) {
+	public function apply(t:TType, params:Array<TType>, args:Array<TType>)
+	{
 		if (args.length != params.length)
 			throw "Invalid number of type parameters";
 		if (args.length == 0)
@@ -717,7 +806,8 @@ class Checker {
 		var subst = new Map();
 		for (i in 0...params.length)
 			subst.set(params[i], args[i]);
-		function map(t: TType) {
+		function map(t:TType)
+		{
 			var st = subst.get(t);
 			if (st != null)
 				return st;
@@ -726,8 +816,10 @@ class Checker {
 		return map(t);
 	}
 
-	public function mapType(t: TType, f: TType->TType) {
-		switch (t) {
+	public function mapType(t:TType, f:TType->TType)
+	{
+		switch (t)
+		{
 			case TMono(r):
 				if (r.r == null)
 					return t;
@@ -755,8 +847,10 @@ class Checker {
 		}
 	}
 
-	public function follow(t: TType) {
-		return switch (t) {
+	public function follow(t:TType)
+	{
+		return switch (t)
+		{
 			case TMono(r): if (r.r != null) follow(r.r) else t;
 			case TType(t, args): follow(apply(t.t, t.params, args));
 			case TNull(t): follow(t);
@@ -765,32 +859,40 @@ class Checker {
 		}
 	}
 
-	public function getFields(t: TType): Array<{name: String, t: TType}> {
+	public function getFields(t:TType):Array<{name:String, t:TType}>
+	{
 		var fields = [];
-		switch (follow(t)) {
+		switch (follow(t))
+		{
 			case TInst(c, args):
 				var map = (t) -> apply(t, c.params, args);
-				while (c != null) {
-					for (fname in c.fields.keys()) {
+				while (c != null)
+				{
+					for (fname in c.fields.keys())
+					{
 						var f = c.fields.get(fname);
 						if (!f.isPublic || !f.complete)
 							continue;
 						var name = f.name, t = map(f.t);
-						if (allowAsync && StringTools.startsWith(name, "a_")) {
+						if (allowAsync && StringTools.startsWith(name, "a_"))
+						{
 							t = unasync(t);
 							name = name.substr(2);
 						}
 						fields.push({name: name, t: t});
 					}
-					if (c.isInterface && c.interfaces != null) {
-						for (i in c.interfaces) {
+					if (c.isInterface && c.interfaces != null)
+					{
+						for (i in c.interfaces)
+						{
 							for (f in getFields(i))
 								fields.push({name: f.name, t: map(f.t)});
 						}
 					}
 					if (c.superClass == null)
 						break;
-					switch (c.superClass) {
+					switch (c.superClass)
+					{
 						case TInst(csup, args):
 							var curMap = map;
 							map = (t) -> curMap(apply(t, csup.params, args));
@@ -807,13 +909,17 @@ class Checker {
 		return fields;
 	}
 
-	function getField(t: TType, f: String, e: Expr, forWrite = false) {
-		switch (follow(t)) {
+	function getField(t:TType, f:String, e:Expr, forWrite = false)
+	{
+		switch (follow(t))
+		{
 			case TInst(c, args):
 				var cf = c.fields.get(f);
-				if (cf == null && allowAsync) {
+				if (cf == null && allowAsync)
+				{
 					cf = c.fields.get("a_" + f);
-					if (cf != null) {
+					if (cf != null)
+					{
 						var isPublic = true; // consider a_ prefixed as script specific
 						cf = {
 							isPublic: isPublic,
@@ -827,14 +933,17 @@ class Checker {
 							cf = null;
 					}
 				}
-				if (cf == null && c.isInterface && c.interfaces != null) {
-					for (i in c.interfaces) {
+				if (cf == null && c.isInterface && c.interfaces != null)
+				{
+					for (i in c.interfaces)
+					{
 						var ft = getField(i, f, e, forWrite);
 						if (ft != null)
 							return apply(ft, c.params, args);
 					}
 				}
-				if (cf == null) {
+				if (cf == null)
+				{
 					if (c.superClass == null)
 						return null;
 					var ft = getField(c.superClass, f, e, forWrite);
@@ -862,11 +971,14 @@ class Checker {
 		}
 	}
 
-	public function unasync(t: TType): TType {
-		switch (follow(t)) {
+	public function unasync(t:TType):TType
+	{
+		switch (follow(t))
+		{
 			case TFun(args, ret) if (args.length > 0):
 				var rargs = args.copy();
-				switch (follow(rargs.shift().t)) {
+				switch (follow(rargs.shift().t))
+				{
 					case TFun([r], _): return TFun(rargs, r.t);
 					default:
 				}
@@ -875,24 +987,28 @@ class Checker {
 		return null;
 	}
 
-	function typeExprWith(expr: Expr, t: TType) {
+	function typeExprWith(expr:Expr, t:TType)
+	{
 		var et = typeExpr(expr, WithType(t));
 		unify(et, t, expr);
 		return t;
 	}
 
-	function makeMono() {
+	function makeMono()
+	{
 		return TMono({r: null});
 	}
 
-	function makeIterator(t): TType {
+	function makeIterator(t):TType
+	{
 		return TAnon([
 			{name: "next", opt: false, t: TFun([], t)},
 			{name: "hasNext", opt: false, t: TFun([], TBool)}
 		]);
 	}
 
-	function mk(e, p): Expr {
+	function mk(e, p):Expr
+	{
 		#if hscriptPos
 		return {
 			e: e,
@@ -906,37 +1022,45 @@ class Checker {
 		#end
 	}
 
-	function isString(t: TType) {
+	function isString(t:TType)
+	{
 		t = follow(t);
 		return t.match(TInst({name: "String"}, _));
 	}
 
-	function onCompletion(expr: Expr, t: TType) {
+	function onCompletion(expr:Expr, t:TType)
+	{
 		if (isCompletion)
 			throw new Completion(expr, t);
 	}
 
-	function typeField(o: Expr, f: String, expr: Expr, forWrite: Bool) {
+	function typeField(o:Expr, f:String, expr:Expr, forWrite:Bool)
+	{
 		var ot = typeExpr(o, Value);
 		if (f == null)
 			onCompletion(expr, ot);
 		var ft = getField(ot, f, expr, forWrite);
-		if (ft == null) {
+		if (ft == null)
+		{
 			error(typeStr(ot) + " has no field " + f, expr);
 			ft = TDynamic;
 		}
 		return ft;
 	}
 
-	function typeExpr(expr: Expr, withType: WithType): TType {
+	function typeExpr(expr:Expr, withType:WithType):TType
+	{
 		if (expr == null && isCompletion)
-			return switch (withType) {
+			return switch (withType)
+			{
 				case WithType(t): t;
 				default: TDynamic;
 			}
-		switch (edef(expr)) {
+		switch (edef(expr))
+		{
 			case EConst(c):
-				return switch (c) {
+				return switch (c)
+				{
 					case CInt(_): TInt;
 					case CFloat(_): TFloat;
 					case CString(_): types.t_string;
@@ -946,20 +1070,24 @@ class Checker {
 				if (l != null)
 					return l;
 				var g = globals.get(v);
-				if (g != null) {
-					return switch (g) {
+				if (g != null)
+				{
+					return switch (g)
+					{
 						case TLazy(f): f();
 						default: g;
 					}
 				}
-				if (allowAsync) {
+				if (allowAsync)
+				{
 					g = globals.get("a_" + v);
 					if (g != null)
 						g = unasync(g);
 					if (g != null)
 						return g;
 				}
-				switch (v) {
+				switch (v)
+				{
 					case "null":
 						return makeMono();
 					case "true", "false":
@@ -980,24 +1108,29 @@ class Checker {
 				return t;
 			case EVar(n, t, init, c):
 				var vt = t == null ? makeMono() : makeType(t, expr);
-				if (init != null) {
+				if (init != null)
+				{
 					var et = typeExpr(init, t == null ? Value : WithType(vt));
 					if (t == null)
 						vt = et
 					else
 						unify(et, vt, init);
-				} else
+				}
+				else
 					locals.set(n, vt);
 				return TVoid;
 			case EParent(e):
 				return typeExpr(e, withType);
 			case ECall(e, params):
 				var ft = typeExpr(e, Value);
-				switch (follow(ft)) {
+				switch (follow(ft))
+				{
 					case TFun(args, ret):
-						for (i in 0...params.length) {
+						for (i in 0...params.length)
+						{
 							var a = args[i];
-							if (a == null) {
+							if (a == null)
+							{
 								error("Too many arguments", params[i]);
 								break;
 							}
@@ -1045,16 +1178,20 @@ class Checker {
 				typeExpr(e, NoValue);
 				return TVoid;
 			case EObject(fl):
-				switch (withType) {
+				switch (withType)
+				{
 					case WithType(follow(_) => TAnon(tfields)) if (tfields.length > 0):
 						var map = [for (f in tfields) f.name => f];
 						return TAnon([
-							for (f in fl) {
+							for (f in fl)
+							{
 								var ft = map.get(f.name);
-								var ft = if (ft == null) {
+								var ft = if (ft == null)
+								{
 									error("Extra field " + f.name, f.e);
 									TDynamic;
-								} else ft.t;
+								}
+								else ft.t;
 								{t: typeExprWith(f.e, ft), opt: false, name: f.name}
 							}
 						]);
@@ -1072,11 +1209,13 @@ class Checker {
 				return makeMono();
 			case EArrayDecl(el):
 				var et = null;
-				for (v in el) {
+				for (v in el)
+				{
 					var t = typeExpr(v, et == null ? Value : WithType(et));
 					if (et == null)
 						et = t
-					else if (!tryUnify(t, et)) {
+					else if (!tryUnify(t, et))
+					{
 						if (tryUnify(et, t))
 							et = t
 						else
@@ -1089,7 +1228,8 @@ class Checker {
 			case EArray(a, index):
 				typeExprWith(index, TInt);
 				var at = typeExpr(a, Value);
-				switch (follow(at)) {
+				switch (follow(at))
+				{
 					case TInst({name: "Array"}, [et]): return et;
 					default: error(typeStr(at) + " is not an Array", a);
 				}
@@ -1098,8 +1238,10 @@ class Checker {
 				return makeMono();
 			case EFunction(args, body, name, ret):
 				var ft = null, tret = null, targs = null;
-				if (currentFunType != null) {
-					switch (currentFunType) {
+				if (currentFunType != null)
+				{
+					switch (currentFunType)
+					{
 						case TFun(args, ret):
 							ft = currentFunType;
 							tret = ret;
@@ -1108,7 +1250,9 @@ class Checker {
 							throw "assert";
 					}
 					currentFunType = null;
-				} else {
+				}
+				else
+				{
 					tret = ret == null ? makeMono() : makeType(ret, expr);
 				}
 				var locals = saveLocals();
@@ -1117,12 +1261,14 @@ class Checker {
 				allowReturn = tret;
 				allowDefine = false;
 				var withArgs = null;
-				if (name != null && !withType.match(WithType(follow(_) => TFun(_)))) {
+				if (name != null && !withType.match(WithType(follow(_) => TFun(_))))
+				{
 					var ev = events.get(name);
 					if (ev != null)
 						withType = WithType(ev);
 				}
-				switch (withType) {
+				switch (withType)
+				{
 					case WithType(follow(_) => TFun(args, ret)):
 						withArgs = args;
 						unify(tret, ret, expr);
@@ -1130,9 +1276,11 @@ class Checker {
 				}
 				if (targs == null)
 					targs = typeArgs(args, expr);
-				for (i in 0...targs.length) {
+				for (i in 0...targs.length)
+				{
 					var a = targs[i];
-					if (withArgs != null) {
+					if (withArgs != null)
+					{
 						if (i < withArgs.length)
 							unify(withArgs[i].t, a.t, expr);
 						else
@@ -1150,14 +1298,16 @@ class Checker {
 				allowDefine = oldGDef;
 				allowReturn = oldRet;
 				this.locals = locals;
-				if (ft == null) {
+				if (ft == null)
+				{
 					ft = TFun(targs, tret);
 					locals.set(name, ft);
 				}
 				return ft;
 			case EUnop(op, _, e):
 				var et = typeExpr(e, Value);
-				switch (op) {
+				switch (op)
+				{
 					case "++", "--", "-":
 						unify(et, TInt, e);
 						return et;
@@ -1169,13 +1319,15 @@ class Checker {
 			case EFor(v, it, e):
 				var locals = saveLocals();
 				var itt = typeExpr(it, Value);
-				var vt = switch (follow(itt)) {
+				var vt = switch (follow(itt))
+				{
 					case TInst({name: "Array"}, [t]):
 						t;
 					default:
 						var ft = getField(itt, "iterator", it);
 						if (ft == null)
-							switch (itt) {
+							switch (itt)
+							{
 								case TAbstract(a, args):
 									// special case : we allow unconditional access
 									// to an abstract iterator() underlying value (eg: ArrayProxy)
@@ -1183,7 +1335,8 @@ class Checker {
 								default:
 							}
 						if (ft != null)
-							switch (ft) {
+							switch (ft)
+							{
 								case TFun([], ret): ft = ret;
 								default: ft = null;
 							}
@@ -1197,14 +1350,17 @@ class Checker {
 				this.locals = locals;
 				return TVoid;
 			case EBinop(op, e1, e2):
-				switch (op) {
+				switch (op)
+				{
 					case "&", "|", "^", ">>", ">>>", "<<":
 						typeExprWith(e1, TInt);
 						typeExprWith(e2, TInt);
 						return TInt;
 					case "=":
-						if (allowDefine) {
-							switch (edef(e1)) {
+						if (allowDefine)
+						{
+							switch (edef(e1))
+							{
 								case EIdent(i) if (!locals.exists(i) && !globals.exists(i)):
 									var vt = typeExpr(e2, Value);
 									locals.set(i, vt);
@@ -1212,7 +1368,8 @@ class Checker {
 								default:
 							}
 						}
-						var vt = switch (edef(e1)) {
+						var vt = switch (edef(e1))
+						{
 							case EField(o, f): typeField(o, f, e1, true);
 							default: typeExpr(e1, Value);
 						}
@@ -1222,7 +1379,8 @@ class Checker {
 						var t1 = typeExpr(e1, WithType(TInt));
 						var t2 = typeExpr(e2, WithType(t1));
 						tryUnify(t1, t2);
-						switch ([follow(t1), follow(t2)]) {
+						switch ([follow(t1), follow(t2)])
+						{
 							case [TInt, TInt]:
 								return TInt;
 							case [TFloat, TInt], [TInt, TFloat], [TFloat, TFloat]:
@@ -1240,7 +1398,8 @@ class Checker {
 						var t2 = typeExpr(e2, WithType(t1));
 						if (!tryUnify(t1, t2))
 							unify(t2, t1, e2);
-						switch ([follow(t1), follow(t2)]) {
+						switch ([follow(t1), follow(t2)])
+						{
 							case [TInt, TInt]:
 								if (op == "/")
 									return TFloat;
@@ -1270,14 +1429,16 @@ class Checker {
 						var t2 = typeExpr(e2, WithType(t1));
 						if (!tryUnify(t1, t2))
 							unify(t2, t1, e2);
-						switch (follow(t1)) {
+						switch (follow(t1))
+						{
 							case TInt, TFloat, TBool, TInst({name: "String"}, _):
 							default:
 								error("Cannot compare " + typeStr(t1), expr);
 						}
 						return TBool;
 					default:
-						if (op.charCodeAt(op.length - 1) == "=".code) {
+						if (op.charCodeAt(op.length - 1) == "=".code)
+						{
 							var t = typeExpr(mk(EBinop(op.substr(0, op.length - 1), e1, e2), expr), withType);
 							return typeExpr(mk(EBinop("=", e1, e2), expr), withType);
 						}
@@ -1303,18 +1464,23 @@ class Checker {
 			case ESwitch(value, cases, defaultExpr):
 				var tmin = null;
 				var vt = typeExpr(value, Value);
-				inline function mergeType(t, p) {
-					if (withType != NoValue) {
+				inline function mergeType(t, p)
+				{
+					if (withType != NoValue)
+					{
 						if (tmin == null)
 							tmin = t;
-						else if (!tryUnify(t, tmin)) {
+						else if (!tryUnify(t, tmin))
+						{
 							unify(tmin, t, p);
 							tmin = t;
 						}
 					}
 				}
-				for (c in cases) {
-					for (v in c.values) {
+				for (c in cases)
+				{
+					for (v in c.values)
+					{
 						var ct = typeExpr(v, WithType(vt));
 						unify(ct, vt, v);
 					}

@@ -24,9 +24,12 @@ package hscript;
 
 import hscript.Expr;
 
-class Tools {
-	public static function iter(e: Expr, f: Expr->Void): Void {
-		switch (expr(e)) {
+class Tools
+{
+	public static function iter(e:Expr, f:Expr->Void):Void
+	{
+		switch (expr(e))
+		{
 			case EConst(_), EIdent(_):
 			case EVar(_, _, e, _):
 				if (e != null)
@@ -90,7 +93,8 @@ class Tools {
 				f(e2);
 			case ESwitch(e, cases, def):
 				f(e);
-				for (c in cases) {
+				for (c in cases)
+				{
 					for (v in c.values)
 						f(v);
 					f(c.expr);
@@ -108,8 +112,10 @@ class Tools {
 		}
 	}
 
-	public static function map(e: Expr, f: Expr->Expr): Expr {
-		var edef = switch (expr(e)) {
+	public static function map(e:Expr, f:Expr->Expr):Expr
+	{
+		var edef = switch (expr(e))
+		{
 			case EConst(_), EIdent(_), EBreak, EContinue: expr(e);
 			case EVar(n, t, e, c): EVar(n, t, if (e != null) f(e) else null, c);
 			case EParent(e): EParent(f(e));
@@ -142,11 +148,13 @@ class Tools {
 		return mk(edef, e);
 	}
 
-	public static inline function expr(e: Expr): ExprDef {
+	public static inline function expr(e:Expr):ExprDef
+	{
 		return #if hscriptPos e.e #else e #end;
 	}
 
-	public static inline function mk(e: ExprDef, p: Expr): Expr {
+	public static inline function mk(e:ExprDef, p:Expr):Expr
+	{
 		#if hscriptPos
 		return {
 			e: e,
@@ -160,9 +168,11 @@ class Tools {
 		#end
 	}
 
-	public static function removeInnerClass(name: String): String {
+	public static function removeInnerClass(name:String):String
+	{
 		var ll = name.lastIndexOf(".");
-		if (name.indexOf(".") != ll) { // checks if there are 2 or more dots
+		if (name.indexOf(".") != ll)
+		{ // checks if there are 2 or more dots
 			// wtf did i make -neo
 			// this is awesome -crow
 			return name.substr(0, name.lastIndexOf(".", ll - 1)) + "." + name.substr(ll + 1);
@@ -171,19 +181,22 @@ class Tools {
 		return name.substr(ll + 1);
 	}
 
-	public static function getClass(name: String): Dynamic {
-		var c: Dynamic = Type.resolveClass(name);
+	public static function getClass(name:String):Dynamic
+	{
+		var c:Dynamic = Type.resolveClass(name);
 		if (c == null) // try importing as enum
 			try
 				c = Type.resolveEnum(name);
 
-		if (c == null) {
+		if (c == null)
+		{
 			// lastly try removing any inner class from it
 			// this allows you to import stuff like
 			// flixel.text.FlxText.FlxTextBorderStyle
 			// without the script crashing immediately
 			var className = removeInnerClass(name);
-			if (className != name) {
+			if (className != name)
+			{
 				c = Type.resolveClass(className);
 				if (c == null)
 					c = Type.resolveEnum(className);
@@ -192,10 +205,11 @@ class Tools {
 		return c;
 	}
 
-	public inline static function last(arr: Array<String>): String
+	public inline static function last(arr:Array<String>):String
 		return arr[arr.length - 1];
 
-	public static function isIterable(v: Dynamic): Bool {
+	public static function isIterable(v:Dynamic):Bool
+	{
 		// TODO: test for php and lua, they might have issues with this check
 		return v != null && v.iterator != null;
 	}
@@ -203,7 +217,8 @@ class Tools {
 	/**
 	 * DO NOT USE INLINE ON THIS FUNCTION
 	**/
-	public static function argCount(func: haxe.Constraints.Function): Int {
+	public static function argCount(func:haxe.Constraints.Function):Int
+	{
 		#if cpp
 		return untyped __cpp__("{0}->__ArgCount()", func);
 		#elseif js
@@ -214,32 +229,36 @@ class Tools {
 	}
 }
 
-class EnumValue {
-	public var enumName: String;
-	public var name: String;
-	public var index: Int;
-	public var args: Array<Dynamic>;
+class EnumValue
+{
+	public var enumName:String;
+	public var name:String;
+	public var index:Int;
+	public var args:Array<Dynamic>;
 
-	public function new(enumName: String, name: String, index: Int, ?args: Array<Dynamic>) {
+	public function new(enumName:String, name:String, index:Int, ?args:Array<Dynamic>)
+	{
 		this.enumName = enumName;
 		this.name = name;
 		this.index = index;
 		this.args = args;
 	}
 
-	public function toString(): String {
+	public function toString():String
+	{
 		if (args == null)
 			return enumName + "." + name;
 		return enumName + "." + name + "(" + [for (arg in args) arg].join(", ") + ")";
 	}
 
-	public inline function getEnumName(): String
+	public inline function getEnumName():String
 		return this.enumName;
 
-	public inline function getConstructorArgs(): Array<Dynamic>
+	public inline function getConstructorArgs():Array<Dynamic>
 		return this.args != null ? this.args : [];
 
-	public function compare(other: EnumValue): Bool {
+	public function compare(other:EnumValue):Bool
+	{
 		if (enumName != other.enumName || name != other.name)
 			return false;
 		if (args == null && other.args == null)
@@ -249,7 +268,8 @@ class EnumValue {
 		if (args.length != other.args.length)
 			return false;
 
-		for (i in 0...args.length) {
+		for (i in 0...args.length)
+		{
 			// TODO: allow deep comparison, like arrays
 			if (args[i] != other.args[i])
 				return false;
