@@ -2,12 +2,9 @@
 
 ---
 
-a [HScript](https://github.com/HaxeFoundation/hscript) extension made to make the process of creating a script way easier.
-NOTE: Might not be compatible with projects expecting regular hscript-iris
+A [HScript](https://github.com/HaxeFoundation/hscript) extension made to make the process of creating a script way easier.
+NOTE: Not be compatible with projects expecting regular hscript-iris
 
----
-# Credits
-- Parent Instances taken from Psych Engine
 ---
 
 # USAGE

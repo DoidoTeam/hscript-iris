@@ -82,16 +82,23 @@ class Interp
 
 	public var parentInstance(default, set):Dynamic = [];
 
+	private var _parentClass:Class<Dynamic> = null;
 	private var _instanceFields:Array<String>;
+	private var _staticFields:Array<String> = [];
 
 	function set_parentInstance(inst:Dynamic):Dynamic
 	{
-		if (parentInstance == null)
+		if (inst == null)
 		{
 			_instanceFields = [];
-			return inst;
+			_staticFields = [];
+			_parentClass = null;
+			return parentInstance = null;
 		}
-		_instanceFields = Type.getInstanceFields(Type.getClass(inst));
+
+		_parentClass = Type.getClass(inst);
+		_instanceFields = Type.getInstanceFields(_parentClass);
+		_staticFields = Type.getClassFields(_parentClass);
 		return parentInstance = inst;
 	}
 
@@ -191,13 +198,19 @@ class Interp
 	{
 		if (parentInstance != null)
 		{
-			if (_instanceFields.contains(name))
-			{
-				Reflect.setProperty(parentInstance, name, v);
-			}
+			var setter = "set_" + name;
+			var parent = null;
+
+			if (_instanceFields.contains(name) || _instanceFields.contains(setter))
+				parent = parentInstance;
+			else if (_parentClass != null && (_staticFields.contains(name) || _staticFields.contains(setter)))
+				parent = _parentClass;
+
+			if (parent != null)
+				return Reflect.setProperty(parent, name, v);
 		}
-		else
-			variables.set(name, v);
+
+		variables.set(name, v);
 	}
 
 	function assign(e1:Expr, e2:Expr):Dynamic
@@ -461,36 +474,32 @@ class Interp
 	function resolve(id:String):Dynamic
 	{
 		if (locals.exists(id))
-		{
-			var l = locals.get(id);
-			return l.r;
-		}
+			return locals.get(id).r;
 
 		if (variables.exists(id))
-		{
-			var v = variables.get(id);
-			return v;
-		}
+			return variables.get(id);
 
 		if (imports.exists(id))
-		{
-			var v = imports.get(id);
-			return v;
-		}
+			return imports.get(id);
 
 		if (parentInstance != null)
 		{
 			if (id == "this")
 				return parentInstance;
-			else if (_instanceFields.contains(id))
-			{
-				var v = Reflect.getProperty(parentInstance, id);
-				return v;
-			}
+
+			var getter = "get_" + id;
+			var parent = null;
+
+			if (_instanceFields.contains(id) || _instanceFields.contains(getter))
+				parent = parentInstance;
+			else if (_parentClass != null && (_staticFields.contains(id) || _staticFields.contains(getter)))
+				parent = _parentClass;
+
+			if (parent != null)
+				return Reflect.getProperty(parent, id);
 		}
 
 		error(EUnknownVariable(id));
-
 		return null;
 	}
 
