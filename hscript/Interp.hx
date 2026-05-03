@@ -199,15 +199,16 @@ class Interp
 		if (parentInstance != null)
 		{
 			var setter = "set_" + name;
-			var parent = null;
-
 			if (_instanceFields.contains(name) || _instanceFields.contains(setter))
-				parent = parentInstance;
+			{
+				Reflect.setProperty(parentInstance, name, v);
+				return;
+			}
 			else if (_parentClass != null && (_staticFields.contains(name) || _staticFields.contains(setter)))
-				parent = _parentClass;
-
-			if (parent != null)
-				return Reflect.setProperty(parent, name, v);
+			{
+				Reflect.setProperty(_parentClass, name, v);
+				return;
+			}
 		}
 
 		variables.set(name, v);
@@ -488,15 +489,11 @@ class Interp
 				return parentInstance;
 
 			var getter = "get_" + id;
-			var parent = null;
-
 			if (_instanceFields.contains(id) || _instanceFields.contains(getter))
-				parent = parentInstance;
-			else if (_parentClass != null && (_staticFields.contains(id) || _staticFields.contains(getter)))
-				parent = _parentClass;
+				return Reflect.getProperty(parentInstance, id);
 
-			if (parent != null)
-				return Reflect.getProperty(parent, id);
+			if (_parentClass != null && (_staticFields.contains(id) || _staticFields.contains(getter)))
+				return Reflect.getProperty(_parentClass, id);
 		}
 
 		error(EUnknownVariable(id));
